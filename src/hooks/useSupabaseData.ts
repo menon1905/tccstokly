@@ -1,21 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { X } from 'lucide-react';
-import {
-  BarChart3,
-  Bot,
-  Package,
-  ShoppingCart,
-  ShoppingBag,
-  DollarSign,
-  Users,
-  Users2,
-  FileText,
-  Settings,
-  HelpCircle,
-  MessageSquare,
-  Sparkles,
-} from 'lucide-react';
+import { BarChart3, Bot, Package, ShoppingCart, ShoppingBag, DollarSign, Users, Users as Users2, FileText, Settings, HelpCircle, MessageSquare, Sparkles } from 'lucide-react';
 
 interface SidebarProps {
   onClose?: () => void;
