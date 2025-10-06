@@ -130,7 +130,7 @@ export const AIPanel: React.FC<AIPanelProps> = ({ onClose }) => {
         {onClose && (
           <button
             onClick={onClose}
-            className="lg:hidden absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+            className="xl:hidden absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>

@@ -90,30 +90,30 @@ export const CRM: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">CRM - Gestão de Clientes</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">CRM - Gestão de Clientes</h1>
           <p className="text-gray-600">Gerencie seus contatos e relacionamentos comerciais</p>
         </div>
         <div className="flex gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+          <button className="flex items-center gap-2 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm sm:text-base">
             <Filter className="w-4 h-4" />
-            Filtros
+            <span className="hidden sm:inline">Filtros</span>
           </button>
           <button 
             onClick={() => setShowCustomerForm(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm sm:text-base"
           >
             <UserPlus className="w-4 h-4" />
-            Novo Cliente
+            <span className="hidden sm:inline">Novo Cliente</span>
           </button>
         </div>
       </div>
 
       {/* Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
         <MetricCard
           title="Total de Contatos"
           value={totalContacts.toString()}
@@ -138,7 +138,7 @@ export const CRM: React.FC = () => {
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
+      <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-4 lg:p-6">
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -147,7 +147,7 @@ export const CRM: React.FC = () => {
               placeholder="Buscar por nome, empresa ou email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm sm:text-base"
             />
           </div>
           <select
@@ -164,23 +164,23 @@ export const CRM: React.FC = () => {
         {/* Contacts List */}
         <div className="space-y-4">
           {filteredCustomers.map((customer) => (
-            <div key={customer.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+            <div key={customer.id} className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
                     <Users className="w-6 h-6 text-orange-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">{customer.name}</h3>
+                    <h3 className="font-semibold text-gray-900 text-sm sm:text-base">{customer.name}</h3>
                     {customer.company && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
                         <Building2 className="w-4 h-4" />
                         {customer.company}
                       </div>
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 sm:gap-4">
                   <div className="text-right">
                     <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
                       customer.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
@@ -188,17 +188,17 @@ export const CRM: React.FC = () => {
                       {customer.status === 'active' ? 'Ativo' : 'Inativo'}
                     </span>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-1 sm:space-x-2">
                     <button 
                       onClick={() => handleViewCustomer(customer)}
-                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      className="p-1 sm:p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                       title="Visualizar cliente"
                     >
                       <Eye className="w-4 h-4" />
                     </button>
                     <button 
                       onClick={() => handleEditCustomer(customer)}
-                      className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+                      className="p-1 sm:p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
                       title="Editar cliente"
                     >
                       <Edit className="w-4 h-4" />
@@ -206,7 +206,7 @@ export const CRM: React.FC = () => {
                     <button
                       onClick={() => handleDeleteCustomer(customer.id, customer.name)}
                       disabled={deletingCustomerId === customer.id}
-                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="p-1 sm:p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       title="Excluir cliente"
                     >
                       {deletingCustomerId === customer.id ? (
@@ -219,7 +219,7 @@ export const CRM: React.FC = () => {
                 </div>
               </div>
               
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 text-xs sm:text-sm">
                 <div className="flex items-center gap-2 text-gray-600">
                   <Mail className="w-4 h-4" />
                   {customer.email}
@@ -230,14 +230,14 @@ export const CRM: React.FC = () => {
                 </div>
               </div>
               
-              <div className="mt-4 flex items-center justify-between text-sm">
+              <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 text-xs sm:text-sm">
                 {customer.last_purchase && (
                   <div className="flex items-center gap-2 text-gray-600">
                     <Calendar className="w-4 h-4" />
                     Última compra: {new Date(customer.last_purchase).toLocaleDateString('pt-BR')}
                   </div>
                 )}
-                <div className="font-semibold text-green-600">
+                <div className="font-semibold text-green-600 text-sm sm:text-base">
                   {formatCurrency(customer.total_purchases || 0)}
                 </div>
               </div>

@@ -128,16 +128,16 @@ export const Vendas: React.FC = () => {
   }
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="p-3 sm:p-4 lg:p-6 xl:p-8 space-y-4 sm:space-y-6 lg:space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Vendas</h1>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Vendas</h1>
           <p className="text-gray-600 mt-1">Análise inteligente de vendas</p>
         </div>
         <button 
           onClick={() => setShowSaleForm(true)}
-          className="flex items-center px-6 py-2 text-white bg-green-600 rounded-xl hover:bg-green-700 transition-colors"
+          className="flex items-center px-4 sm:px-6 py-2 sm:py-3 text-white bg-green-600 rounded-lg sm:rounded-xl hover:bg-green-700 transition-colors text-sm sm:text-base"
         >
           <Plus className="w-4 h-4 mr-2" />
           Nova Venda
@@ -145,7 +145,7 @@ export const Vendas: React.FC = () => {
       </div>
 
       {/* Métricas com IA */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
         <MetricCard
           title="Vendas Realizadas"
           value={totalSales.toString()}
@@ -158,55 +158,57 @@ export const Vendas: React.FC = () => {
           icon={DollarSign}
           iconColor="text-green-600"
         />
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-100 p-6">
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl sm:rounded-2xl border border-blue-100 p-3 sm:p-4 lg:p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-2">
               <Bot className="w-5 h-5 text-blue-600" />
-              <span className="text-sm font-medium text-blue-600">Previsão IA</span>
+              <span className="text-xs sm:text-sm font-medium text-blue-600">Previsão IA</span>
             </div>
-            <div className="text-xs text-blue-500 bg-blue-100 px-2 py-1 rounded-full">
+            <div className="text-xs text-blue-500 bg-blue-100 px-1 sm:px-2 py-1 rounded-full">
               {Math.round(aiPredictions.confidence)}%
             </div>
           </div>
-          <p className="text-2xl font-bold text-gray-900 mb-1">
+          <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-1">
             {formatCurrency(aiPredictions.nextWeekSales)}
           </p>
-          <p className="text-sm text-gray-600">Vendas próxima semana</p>
+          <p className="text-xs sm:text-sm text-gray-600">Vendas próxima semana</p>
         </div>
-        <div className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-2xl border border-emerald-100 p-6">
+        <div className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-xl sm:rounded-2xl border border-emerald-100 p-3 sm:p-4 lg:p-6">
           <div className="flex items-center space-x-2 mb-4">
             <Target className="w-5 h-5 text-emerald-600" />
-            <span className="text-sm font-medium text-emerald-600">Meta IA</span>
+            <span className="text-xs sm:text-sm font-medium text-emerald-600">Meta IA</span>
           </div>
-          <p className="text-2xl font-bold text-gray-900 mb-1">
+          <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-1">
             {formatCurrency(aiPredictions.nextMonthRevenue)}
           </p>
-          <p className="text-sm text-gray-600">Previsão próximos 30 dias</p>
+          <p className="text-xs sm:text-sm text-gray-600">Previsão próximos 30 dias</p>
         </div>
       </div>
 
       {/* Gráfico Principal */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-8">
+      <div className="bg-white rounded-xl sm:rounded-2xl border border-gray-100 p-3 sm:p-4 lg:p-6 xl:p-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h3 className="text-xl font-semibold text-gray-900">Vendas vs Previsão IA</h3>
-            <p className="text-gray-600 mt-1">
+            <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900">Vendas vs Previsão IA</h3>
+            <p className="text-sm sm:text-base text-gray-600 mt-1">
               {predictionLoading ? 'Carregando previsões...' : 
                predictionData ? `Modelo: ${predictionData.model_info.type} (${predictionData.model_info.data_points} pontos de dados)` :
                'Dados históricos e previsões inteligentes'}
             </p>
           </div>
           {predictionData && (
-            <div className="text-right text-sm text-gray-600">
+            <div className="text-right text-xs sm:text-sm text-gray-600 hidden sm:block">
               <p>Precisão: {Math.round(predictionData.model_info.accuracy_percentage)}%</p>
               <p>RMSE: {formatCurrency(predictionData.model_info.rmse)}</p>
             </div>
           )}
         </div>
+        <div className="h-48 sm:h-64 lg:h-80">
         <Line 
           data={chartData} 
           options={{
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
               legend: {
                 display: true,
@@ -250,12 +252,13 @@ export const Vendas: React.FC = () => {
             },
           }} 
         />
+        </div>
       </div>
 
       {/* Lista de Vendas - Simplificada */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-8">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-semibold text-gray-900">Vendas Recentes</h3>
+      <div className="bg-white rounded-xl sm:rounded-2xl border border-gray-100 p-3 sm:p-4 lg:p-6 xl:p-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+          <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Vendas Recentes</h3>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
@@ -263,23 +266,23 @@ export const Vendas: React.FC = () => {
               placeholder="Buscar vendas..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 w-64 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="pl-10 pr-4 py-2 w-full sm:w-64 border border-gray-200 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm sm:text-base"
             />
           </div>
         </div>
 
         <div className="space-y-4">
           {filteredSales.slice(0, 5).map((sale) => (
-            <div key={sale.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+            <div key={sale.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg sm:rounded-xl gap-3 sm:gap-0">
               <div>
-                <p className="font-medium text-gray-900">{sale.customers?.name || 'Cliente não encontrado'}</p>
-                <p className="text-sm text-gray-600">{sale.products?.name || 'Produto não encontrado'}</p>
+                <p className="font-medium text-gray-900 text-sm sm:text-base">{sale.customers?.name || 'Cliente não encontrado'}</p>
+                <p className="text-xs sm:text-sm text-gray-600">{sale.products?.name || 'Produto não encontrado'}</p>
               </div>
               <div className="text-right">
-                <p className="font-semibold text-gray-900">
+                <p className="font-semibold text-gray-900 text-sm sm:text-base">
                   {formatCurrency(sale.total)}
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="text-xs sm:text-sm text-gray-500">
                   {new Date(sale.created_at).toLocaleDateString('pt-BR')}
                 </p>
               </div>

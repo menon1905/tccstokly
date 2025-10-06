@@ -47,7 +47,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, onAIPanelClick }) =
           {/* AI Panel toggle for mobile */}
           <button
             onClick={onAIPanelClick}
-            className="lg:hidden p-2 text-gray-400 hover:text-purple-600 rounded-lg hover:bg-purple-50 transition-colors"
+            className="xl:hidden p-2 text-gray-400 hover:text-purple-600 rounded-lg hover:bg-purple-50 transition-colors"
           >
             <Bot className="w-5 h-5" />
           </button>
