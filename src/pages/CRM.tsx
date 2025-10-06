@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, UserPlus, Phone, Mail, Calendar, Filter, Search, MoreVertical, Star, Building2, MapPin, DollarSign, TrendingUp, Activity, Eye, Edit, Trash2, X } from 'lucide-react';
+import { Users, UserPlus, Phone, Mail, Calendar, Filter, Search, MoreVertical, Star, Building2, MapPin, DollarSign, TrendingUp, Activity, Eye, CreditCard as Edit, Trash2, X } from 'lucide-react';
 import { MetricCard } from '../components/MetricCard';
 import { CustomerForm } from '../components/forms/CustomerForm';
 import { useCurrency } from '../hooks/useCurrency';
