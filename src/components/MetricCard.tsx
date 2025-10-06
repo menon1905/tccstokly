@@ -19,7 +19,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-sm font-medium text-gray-600 mb-2">{title}</p>
-          <p className="text-3xl font-bold text-gray-900">{value}</p>
+          <p className="text-2xl lg:text-3xl font-bold text-gray-900 break-all">{value}</p>
         </div>
         <div className={`p-3 rounded-xl bg-gray-50`}>
           <Icon className={`w-6 h-6 ${iconColor}`} />

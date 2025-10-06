@@ -56,7 +56,7 @@ export const Dashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="p-8">
+      <div className="p-4 lg:p-8">
         <div className="animate-pulse space-y-8">
           <div className="h-8 bg-gray-200 rounded w-48"></div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -70,15 +70,15 @@ export const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="p-4 lg:p-8 space-y-6 lg:space-y-8">
       {/* Header Simples */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+        <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Dashboard</h1>
         <p className="text-gray-600 mt-1">Visão geral do seu negócio</p>
       </div>
 
       {/* Métricas Principais - Simplificadas */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
         <MetricCard
           title="Produtos"
           value={totalProducts.toString()}
@@ -110,18 +110,20 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Gráfico Principal - Limpo */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-8">
+      <div className="bg-white rounded-2xl border border-gray-100 p-4 lg:p-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h3 className="text-xl font-semibold text-gray-900">Performance 
+            <h3 className="text-lg lg:text-xl font-semibold text-gray-900">Performance 
             </h3>
             <p className="text-gray-600 mt-1">Vendas reais vs previsões inteligentes</p>
           </div>
         </div>
-        <Line 
+        <div className="h-64 lg:h-auto">
+          <Line 
           data={performanceData} 
           options={{
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
               legend: {
                 display: false,
@@ -141,17 +143,18 @@ export const Dashboard: React.FC = () => {
               },
             },
           }} 
-        />
+          />
+        </div>
       </div>
 
       {/* Insights IA - Simplificados */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
         <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border border-green-100 p-6">
           <div className="flex items-center space-x-2 mb-4">
             <TrendingUp className="w-5 h-5 text-green-600" />
             <span className="text-sm font-medium text-green-600">Previsão</span>
           </div>
-          <p className="text-2xl font-bold text-gray-900 mb-1">
+          <p className="text-xl lg:text-2xl font-bold text-gray-900 mb-1">
             {formatCurrency(aiInsights.nextWeekRevenue)}
           </p>
           <p className="text-sm text-gray-600">Próxima semana</p>
@@ -162,7 +165,7 @@ export const Dashboard: React.FC = () => {
             <Target className="w-5 h-5 text-blue-600" />
             <span className="text-sm font-medium text-blue-600">Meta IA</span>
           </div>
-          <p className="text-2xl font-bold text-gray-900 mb-1">
+          <p className="text-xl lg:text-2xl font-bold text-gray-900 mb-1">
             {formatCurrency(Math.round(totalRevenue * 1.35))}
           </p>
           <p className="text-sm text-gray-600">Recomendada</p>
@@ -173,7 +176,7 @@ export const Dashboard: React.FC = () => {
             <Sparkles className="w-5 h-5 text-orange-600" />
             <span className="text-sm font-medium text-orange-600">Otimização</span>
           </div>
-          <p className="text-2xl font-bold text-gray-900 mb-1">
+          <p className="text-xl lg:text-2xl font-bold text-gray-900 mb-1">
             3
           </p>
           <p className="text-sm text-gray-600">Sugestões ativas</p>
