@@ -1,21 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { X } from 'lucide-react';
-import {
-  BarChart3,
-  Bot,
-  Package,
-  ShoppingCart,
-  ShoppingBag,
-  DollarSign,
-  Users,
-  Users2,
-  FileText,
-  Settings,
-  HelpCircle,
-  MessageSquare,
-  Sparkles,
-} from 'lucide-react';
+import { BarChart3, Bot, Package, ShoppingCart, ShoppingBag, DollarSign, Users, Users as Users2, FileText, Settings, HelpCircle, MessageSquare, Sparkles } from 'lucide-react';
 
 interface SidebarProps {
   onClose?: () => void;
@@ -52,19 +38,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
           >
             <X className="w-5 h-5" />
           </button>
-      // Mock success for Bolt v2 migration
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      console.log('Mock product created:', {
-        name: formData.name,
-        sku: formData.sku,
-        category: formData.category,
-        price: parseFloat(formData.price),
-        cost: parseFloat(formData.cost),
-        stock: parseInt(formData.stock),
-        min_stock: parseInt(formData.min_stock),
-        supplier: formData.supplier,
-      });
+        )}
+        <h1 className="text-xl font-bold text-gray-900">ERP System</h1>
+      </div>
+
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        {navigation.map((item) => (
+          <NavLink
+            key={item.name}
+            to={item.href}
+            onClick={onClose}
+            className={({ isActive }) =>
+              `group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                isActive
                   ? 'bg-purple-100 text-purple-700'
                   : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
               }`
@@ -94,7 +80,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
                 to={item.href}
                 onClick={onClose}
                 className={({ isActive }) =>
-                  `group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                  \`group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                     isActive
                       ? 'bg-purple-100 text-purple-700'
                       : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
