@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, UserPlus, Search, MoreVertical, Edit, Trash2 } from 'lucide-react';
+import { Users, UserPlus, Search, MoreVertical, CreditCard as Edit, Trash2 } from 'lucide-react';
 import { useEmployeeData } from '../hooks/useEmployeeData';
 import { EmployeeForm } from '../components/forms/EmployeeForm';
 import { useCurrency } from '../hooks/useCurrency';

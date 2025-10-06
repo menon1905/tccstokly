@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users2, UserPlus, Search, MoreVertical, Edit, Trash2 } from 'lucide-react';
+import { Users as Users2, UserPlus, Search, MoreVertical, CreditCard as Edit, Trash2 } from 'lucide-react';
 import { useSupabaseData } from '../hooks/useSupabaseData';
 import { CustomerForm } from '../components/forms/CustomerForm';
 

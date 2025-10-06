@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Package, PackagePlus, Search, MoreVertical, Edit, Trash2 } from 'lucide-react';
+import { Package, PackagePlus, Search, MoreVertical, CreditCard as Edit, Trash2 } from 'lucide-react';
 import { useSupabaseData } from '../hooks/useSupabaseData';
 import { ProductForm } from '../components/forms/ProductForm';
 import { useCurrency } from '../hooks/useCurrency';
