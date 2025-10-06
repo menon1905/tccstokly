@@ -204,8 +204,8 @@ export const Vendas: React.FC = () => {
           )}
         </div>
         <div className="h-48 sm:h-64 lg:h-80">
-        <Line 
-          data={chartData} 
+        <Line
+          data={chartData}
           options={{
             responsive: true,
             maintainAspectRatio: false,
@@ -237,20 +237,7 @@ export const Vendas: React.FC = () => {
               intersect: false,
               mode: 'index' as const,
             },
-            scales: {
-              y: {
-                beginAtZero: true,
-                grid: {
-                  color: 'rgba(0, 0, 0, 0.05)',
-                },
-                ticks: {
-                  callback: function(value) {
-                    return formatCurrency(Number(value));
-                  }
-                }
-              },
-            },
-          }} 
+          }}
         />
         </div>
       </div>

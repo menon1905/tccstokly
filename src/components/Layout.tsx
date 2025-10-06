@@ -55,14 +55,13 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       
       {/* AI Panel mobile overlay */}
       {aiPanelOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-40 xl:hidden"
           onClick={closeAiPanel}
         >
           <div className="absolute inset-0 bg-black opacity-50"></div>
         </div>
       )}
-      </div>
     </div>
   );
 };
