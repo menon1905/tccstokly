@@ -1,21 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { X } from 'lucide-react';
-import {
-  BarChart3,
-  Bot,
-  Package,
-  ShoppingCart,
-  ShoppingBag,
-  DollarSign,
-  Users,
-  Users2,
-  FileText,
-  Settings,
-  HelpCircle,
-  MessageSquare,
-  Sparkles,
-} from 'lucide-react';
+import { BarChart3, Bot, Package, ShoppingCart, ShoppingBag, DollarSign, Users, Users as Users2, FileText, Settings, HelpCircle, MessageSquare, Sparkles } from 'lucide-react';
 
 interface SidebarProps {
   onClose?: () => void;
@@ -52,16 +38,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
           >
             <X className="w-5 h-5" />
           </button>
-      // Mock success for Bolt v2 migration
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      console.log('Mock purchase created:', {
-        product_id: formData.product_id,
-        quantity: parseInt(formData.quantity),
-        unit_cost: parseFloat(formData.unit_cost),
-        supplier: formData.supplier,
-        status: 'pending',
-      });
+        )}
+      </div>
+
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        {navigation.map((item) => (
           <NavLink
             key={item.name}
             to={item.href}
