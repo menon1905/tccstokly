@@ -1,95 +1,126 @@
-import { createClient } from '@supabase/supabase-js';
+import React from 'react';
+import { NavLink } from 'react-router-dom';
+import { X } from 'lucide-react';
+import {
+  BarChart3,
+  Bot,
+  Package,
+  ShoppingCart,
+  ShoppingBag,
+  DollarSign,
+  Users,
+  Users2,
+  FileText,
+  Settings,
+  HelpCircle,
+  MessageSquare,
+  Sparkles,
+} from 'lucide-react';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const supabaseServiceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+interface SidebarProps {
+  onClose?: () => void;
+}
 
-// Check if Supabase is properly configured
-export const isSupabaseConfigured = () => {
-  return supabaseUrl && 
-         supabaseAnonKey &&
-         supabaseUrl.includes('supabase.co');
+const navigation = [
+  { name: 'Dashboard', href: '/', icon: BarChart3 },
+  { name: 'Assistente IA', href: '/ai-assistant', icon: Bot, badge: 'AI-Powered' },
+  { name: 'Recomendações IA', href: '/ai-recommendations', icon: Sparkles },
+  { name: 'Estoque', href: '/estoque', icon: Package },
+  { name: 'Vendas', href: '/vendas', icon: ShoppingCart },
+  { name: 'Compras', href: '/compras', icon: ShoppingBag },
+  { name: 'Financeiro', href: '/financeiro', icon: DollarSign },
+  { name: 'RH', href: '/rh', icon: Users },
+  { name: 'CRM', href: '/crm', icon: Users2 },
+  { name: 'Relatórios', href: '/relatorios', icon: FileText },
+  { name: 'Configurações', href: '/configuracoes', icon: Settings },
+];
+
+const support = [
+  { name: 'Comunidade', href: '/comunidade', icon: MessageSquare },
+  { name: 'Ajuda & Suporte', href: '/ajuda', icon: HelpCircle },
+];
+
+export const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
+  return (
+    <div className="flex flex-col w-64 bg-white border-r border-gray-200 h-screen">
+      <div className="flex items-center px-6 py-4 border-b border-gray-200">
+        {/* Close button for mobile */}
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="lg:hidden p-1 text-gray-400 hover:text-gray-600 rounded mr-3"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
+        
+        <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center mr-3">
+          <span className="text-white font-bold text-sm">S</span>
+        </div>
+        <div>
+          <h1 className="text-lg font-semibold text-gray-900">STOKLY ERP</h1>
+          <div className="flex items-center mt-1">
+            <Bot className="w-3 h-3 text-purple-600 mr-1" />
+            <span className="text-xs text-purple-600 font-medium">AI-Powered</span>
+          </div>
+        </div>
+      </div>
+
+      <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+        {navigation.map((item) => (
+          <NavLink
+            key={item.name}
+            to={item.href}
+            onClick={onClose}
+            className={({ isActive }) =>
+              `group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                isActive
+                  ? 'bg-purple-100 text-purple-700'
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+              }`
+            }
+          >
+            <item.icon
+              className="flex-shrink-0 w-5 h-5 mr-3"
+              aria-hidden="true"
+            />
+            <span className="flex-1">{item.name}</span>
+            {item.badge && (
+              <span className="ml-2 px-2 py-1 text-xs font-medium bg-purple-100 text-purple-700 rounded-full">
+                {item.badge}
+              </span>
+            )}
+          </NavLink>
+        ))}
+
+        <div className="pt-6 mt-6 border-t border-gray-200">
+          <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+            SUPORTE
+          </p>
+          <div className="mt-2 space-y-1">
+            {support.map((item) => (
+              <NavLink
+                key={item.name}
+                to={item.href}
+                onClick={onClose}
+                className={({ isActive }) =>
+                  `group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                    isActive
+                      ? 'bg-purple-100 text-purple-700'
+                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                  }`
+                }
+              >
+                <item.icon
+                  className="flex-shrink-0 w-5 h-5 mr-3"
+                  aria-hidden="true"
+                />
+                {item.name}
+              </NavLink>
+            ))}
+          </div>
+        </div>
+      </nav>
+    </div>
+  );
 };
-
-// Validate environment variables
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('❌ ERRO CRÍTICO: Variáveis de ambiente do Supabase não configuradas!');
-  console.error('Configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no arquivo .env');
-}
-
-// Create client - use service role key if available for development
-export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true
-  }
-});
-
-
-// Database types
-export interface Product {
-  id: string;
-  name: string;
-  sku: string;
-  category: string;
-  price: number;
-  cost: number;
-  stock: number;
-  min_stock: number;
-  supplier: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Customer {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  company?: string;
-  total_purchases: number;
-  last_purchase?: string;
-  status: 'active' | 'inactive';
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Sale {
-  id: string;
-  product_id: string;
-  customer_id: string;
-  quantity: number;
-  unit_price: number;
-  total: number;
-  status: 'pending' | 'completed' | 'cancelled';
-  created_at: string;
-  updated_at: string;
-  products?: Product;
-  customers?: Customer;
-}
-
-export interface Purchase {
-  id: string;
-  product_id: string;
-  quantity: number;
-  unit_cost: number;
-  total: number;
-  supplier: string;
-  status: 'pending' | 'received' | 'cancelled';
-  created_at: string;
-  updated_at: string;
-  products?: Product;
-}
-
-export interface AIInsight {
-  id: string;
-  type: 'alert' | 'suggestion' | 'prediction' | 'optimization';
-  title: string;
-  message: string;
-  priority: 'low' | 'medium' | 'high';
-  category: string;
-  is_read: boolean;
-  created_at: string;
-  updated_at: string;
-}

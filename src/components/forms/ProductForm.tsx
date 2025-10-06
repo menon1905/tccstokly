@@ -1,284 +1,116 @@
-import React, { useState } from 'react';
-import { X, Package, Save } from 'lucide-react';
-import { isSupabaseConfigured, supabase } from '../../lib/supabase';
+import React from 'react';
+import { NavLink } from 'react-router-dom';
+import { X } from 'lucide-react';
+import {
+  BarChart3,
+  Bot,
+  Package,
+  ShoppingCart,
+  ShoppingBag,
+  DollarSign,
+  Users,
+  Users2,
+  FileText,
+  Settings,
+  HelpCircle,
+  MessageSquare,
+  Sparkles,
+} from 'lucide-react';
 
-interface ProductFormProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSuccess: () => void;
+interface SidebarProps {
+  onClose?: () => void;
 }
 
-export const ProductForm: React.FC<ProductFormProps> = ({ isOpen, onClose, onSuccess }) => {
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    sku: '',
-    category: '',
-    price: '',
-    cost: '',
-    stock: '',
-    min_stock: '',
-    supplier: ''
-  });
+const navigation = [
+  { name: 'Dashboard', href: '/', icon: BarChart3 },
+  { name: 'Assistente IA', href: '/ai-assistant', icon: Bot, badge: 'AI-Powered' },
+  { name: 'Recomendações IA', href: '/ai-recommendations', icon: Sparkles },
+  { name: 'Estoque', href: '/estoque', icon: Package },
+  { name: 'Vendas', href: '/vendas', icon: ShoppingCart },
+  { name: 'Compras', href: '/compras', icon: ShoppingBag },
+  { name: 'Financeiro', href: '/financeiro', icon: DollarSign },
+  { name: 'RH', href: '/rh', icon: Users },
+  { name: 'CRM', href: '/crm', icon: Users2 },
+  { name: 'Relatórios', href: '/relatorios', icon: FileText },
+  { name: 'Configurações', href: '/configuracoes', icon: Settings },
+];
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+const support = [
+  { name: 'Comunidade', href: '/comunidade', icon: MessageSquare },
+  { name: 'Ajuda & Suporte', href: '/ajuda', icon: HelpCircle },
+];
 
-    try {
-      // Check if Supabase is configured
-      if (!isSupabaseConfigured()) {
-        alert('Sistema não configurado. Entre em contato com o suporte.');
-        setLoading(false);
-        return;
-      }
-
-      // Check authentication
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError || !user) {
-        alert('Você precisa estar logado para adicionar produtos.');
-        setLoading(false);
-        return;
-      }
-
-      const { error } = await supabase
-        .from('products')
-        .insert([{
-          name: formData.name,
-          sku: formData.sku,
-          category: formData.category,
-          price: parseFloat(formData.price),
-          cost: parseFloat(formData.cost),
-          stock: parseInt(formData.stock),
-          min_stock: parseInt(formData.min_stock),
-          supplier: formData.supplier,
-          user_id: user.id
-        }]);
-
-      if (error) {
-        throw error;
-      }
-
-      // Reset form
-      setFormData({
-        name: '',
-        sku: '',
-        category: '',
-        price: '',
-        cost: '',
-        stock: '',
-        min_stock: '',
-        supplier: ''
-      });
-
-      onSuccess();
-      onClose();
-    } catch (error) {
-      console.error('Erro ao adicionar produto:', error);
-      if (error instanceof Error) {
-        if (error.message.includes('duplicate key value violates unique constraint "products_sku_key"') || 
-            error.message.includes('products_sku_key')) {
-          alert('Erro: O SKU informado já existe. Por favor, utilize um SKU único.');
-        } else
-        if (error.message.includes('Failed to fetch')) {
-          alert('Erro de conexão: Verifique se o Supabase está configurado corretamente.');
-        } else if (error.message.includes('row-level security policy') || error.message.includes('42501')) {
-          alert('Erro de permissão: Configure as políticas RLS no Supabase ou use a chave de serviço.');
-        } else {
-          alert(`Erro ao adicionar produto: ${error.message}`);
-        }
-      } else {
-        alert('Erro de conexão: Verifique se o Supabase está configurado corretamente.');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
-  };
-
-  if (!isOpen) return null;
-
+export const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-              <Package className="w-5 h-5 text-purple-600" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900">Adicionar Produto</h2>
-          </div>
+    <div className="flex flex-col w-64 bg-white border-r border-gray-200 h-screen">
+      <div className="flex items-center px-6 py-4 border-b border-gray-200">
+        {/* Close button for mobile */}
+        {onClose && (
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="lg:hidden p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors mr-3"
           >
-            <X className="w-5 h-5 text-gray-500" />
+            <X className="w-5 h-5" />
           </button>
-        </div>
+      // Mock success for Bolt v2 migration
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      console.log('Mock product created:', {
+        name: formData.name,
+        sku: formData.sku,
+        category: formData.category,
+        price: parseFloat(formData.price),
+        cost: parseFloat(formData.cost),
+        stock: parseInt(formData.stock),
+        min_stock: parseInt(formData.min_stock),
+        supplier: formData.supplier,
+      });
+                  ? 'bg-purple-100 text-purple-700'
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+              }`
+            }
+          >
+            <item.icon
+              className="flex-shrink-0 w-5 h-5 mr-3"
+              aria-hidden="true"
+            />
+            <span className="flex-1">{item.name}</span>
+            {item.badge && (
+              <span className="ml-2 px-2 py-1 text-xs font-medium bg-purple-100 text-purple-700 rounded-full">
+                {item.badge}
+              </span>
+            )}
+          </NavLink>
+        ))}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Nome do Produto *
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                placeholder="Ex: iPhone 15 Pro"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                SKU *
-              </label>
-              <input
-                type="text"
-                name="sku"
-                value={formData.sku}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                placeholder="Ex: APL-IP15P-128"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Categoria *
-              </label>
-              <select
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+        <div className="pt-6 mt-6 border-t border-gray-200">
+          <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+            SUPORTE
+          </p>
+          <div className="mt-2 space-y-1">
+            {support.map((item) => (
+              <NavLink
+                key={item.name}
+                to={item.href}
+                onClick={onClose}
+                className={({ isActive }) =>
+                  `group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                    isActive
+                      ? 'bg-purple-100 text-purple-700'
+                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                  }`
+                }
               >
-                <option value="">Selecione uma categoria</option>
-                <option value="Eletrônicos">Eletrônicos</option>
-                <option value="Computadores">Computadores</option>
-                <option value="Acessórios">Acessórios</option>
-                <option value="Móveis">Móveis</option>
-                <option value="Roupas">Roupas</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Fornecedor *
-              </label>
-              <input
-                type="text"
-                name="supplier"
-                value={formData.supplier}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                placeholder="Ex: Apple Brasil"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Preço de Venda *
-              </label>
-              <input
-                type="number"
-                name="price"
-                value={formData.price}
-                onChange={handleChange}
-                required
-                step="0.01"
-                min="0"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                placeholder="0.00"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Custo *
-              </label>
-              <input
-                type="number"
-                name="cost"
-                value={formData.cost}
-                onChange={handleChange}
-                required
-                step="0.01"
-                min="0"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                placeholder="0.00"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Estoque Inicial *
-              </label>
-              <input
-                type="number"
-                name="stock"
-                value={formData.stock}
-                onChange={handleChange}
-                required
-                min="0"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                placeholder="0"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Estoque Mínimo *
-              </label>
-              <input
-                type="number"
-                name="min_stock"
-                value={formData.min_stock}
-                onChange={handleChange}
-                required
-                min="0"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                placeholder="0"
-              />
-            </div>
+                <item.icon
+                  className="flex-shrink-0 w-5 h-5 mr-3"
+                  aria-hidden="true"
+                />
+                {item.name}
+              </NavLink>
+            ))}
           </div>
-
-          <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-3 text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex items-center px-6 py-3 text-white bg-purple-600 rounded-xl hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {loading ? (
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              ) : (
-                <Save className="w-4 h-4 mr-2" />
-              )}
-              {loading ? 'Salvando...' : 'Salvar Produto'}
-            </button>
-          </div>
-        </form>
-      </div>
+        </div>
+      </nav>
     </div>
   );
 };
