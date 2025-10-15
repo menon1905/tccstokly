@@ -1,25 +1,31 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  DollarSign, 
-  TrendingUp, 
-  TrendingDown, 
-  CreditCard, 
+import {
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  CreditCard,
   PieChart,
   Calendar,
   Download,
   Filter,
   Plus,
-  BarChart3
+  BarChart3,
+  Bot,
+  AlertCircle,
+  CheckCircle,
+  Info
 } from 'lucide-react';
 import { MetricCard } from '../components/MetricCard';
 import { useSupabaseData } from '../hooks/useSupabaseData';
 import { useCurrency } from '../hooks/useCurrency';
+import { useFinancialInsights } from '../hooks/useFinancialInsights';
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
 
 export const Financeiro: React.FC = () => {
   const { sales, purchases, loading } = useSupabaseData();
   const { formatCurrency } = useCurrency();
+  const { data: aiData, loading: aiLoading } = useFinancialInsights();
   const navigate = useNavigate();
   const [period, setPeriod] = useState('month');
 
@@ -199,10 +205,39 @@ export const Financeiro: React.FC = () => {
       </div>
     );
   }
+  const getInsightIcon = (type: string) => {
+    switch (type) {
+      case 'success':
+        return <CheckCircle className="w-5 h-5 text-green-600" />;
+      case 'warning':
+        return <AlertCircle className="w-5 h-5 text-yellow-600" />;
+      case 'danger':
+        return <AlertCircle className="w-5 h-5 text-red-600" />;
+      default:
+        return <Info className="w-5 h-5 text-blue-600" />;
+    }
+  };
+
+  const getInsightBgColor = (type: string) => {
+    switch (type) {
+      case 'success':
+        return 'bg-green-50 border-green-200';
+      case 'warning':
+        return 'bg-yellow-50 border-yellow-200';
+      case 'danger':
+        return 'bg-red-50 border-red-200';
+      default:
+        return 'bg-blue-50 border-blue-200';
+    }
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Financeiro</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Financeiro</h1>
+          <p className="text-gray-600 mt-1">Análise financeira com inteligência artificial</p>
+        </div>
         <div className="flex items-center space-x-3">
           <select
             value={period}
@@ -224,6 +259,86 @@ export const Financeiro: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {aiData && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl border border-purple-100 p-6">
+            <div className="flex items-center space-x-2 mb-4">
+              <Bot className="w-5 h-5 text-purple-600" />
+              <span className="text-sm font-medium text-purple-600">Saúde Financeira IA</span>
+            </div>
+            <p className="text-3xl font-bold text-gray-900 mb-1">
+              {aiData.health_score}%
+            </p>
+            <p className="text-sm text-gray-600">Score geral</p>
+          </div>
+
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-100 p-6">
+            <div className="flex items-center space-x-2 mb-4">
+              <TrendingUp className="w-5 h-5 text-green-600" />
+              <span className="text-sm font-medium text-green-600">Previsão Receita</span>
+            </div>
+            <p className="text-3xl font-bold text-gray-900 mb-1">
+              {formatCurrency(aiData.predictions.next_month_revenue)}
+            </p>
+            <p className="text-sm text-gray-600">Próximo mês ({aiData.predictions.confidence.toFixed(0)}% conf.)</p>
+          </div>
+
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100 p-6">
+            <div className="flex items-center space-x-2 mb-4">
+              <BarChart3 className="w-5 h-5 text-blue-600" />
+              <span className="text-sm font-medium text-blue-600">Lucro Previsto</span>
+            </div>
+            <p className="text-3xl font-bold text-gray-900 mb-1">
+              {formatCurrency(aiData.predictions.next_month_profit)}
+            </p>
+            <p className="text-sm text-gray-600">Próximo mês</p>
+          </div>
+
+          <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl border border-orange-100 p-6">
+            <div className="flex items-center space-x-2 mb-4">
+              <Calendar className="w-5 h-5 text-orange-600" />
+              <span className="text-sm font-medium text-orange-600">Runway de Caixa</span>
+            </div>
+            <p className="text-3xl font-bold text-gray-900 mb-1">
+              {aiData.metrics.cash_runway_days}
+            </p>
+            <p className="text-sm text-gray-600">dias de operação</p>
+          </div>
+        </div>
+      )}
+
+      {aiData && aiData.insights.length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-100 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <Bot className="w-5 h-5 mr-2 text-purple-600" />
+            Insights IA
+          </h3>
+          <div className="space-y-3">
+            {aiData.insights.map((insight, index) => (
+              <div
+                key={index}
+                className={`p-4 rounded-lg border ${getInsightBgColor(insight.type)}`}
+              >
+                <div className="flex items-start space-x-3">
+                  <div className="mt-0.5">
+                    {getInsightIcon(insight.type)}
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-gray-900">{insight.title}</h4>
+                    <p className="text-sm text-gray-600 mt-1">{insight.description}</p>
+                    {insight.recommendation && (
+                      <p className="text-sm text-gray-700 mt-2 font-medium">
+                        💡 {insight.recommendation}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

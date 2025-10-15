@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { Package, PackagePlus, Search, MoreVertical, CreditCard as Edit, Trash2 } from 'lucide-react';
+import { Package, PackagePlus, Search, MoreVertical, CreditCard as Edit, Trash2, Bot, AlertTriangle, TrendingUp } from 'lucide-react';
 import { useSupabaseData } from '../hooks/useSupabaseData';
 import { ProductForm } from '../components/forms/ProductForm';
 import { useCurrency } from '../hooks/useCurrency';
+import { useInventoryOptimization } from '../hooks/useInventoryOptimization';
 
 export const Estoque: React.FC = () => {
   const { products, loading, error, addProduct, updateProduct, deleteProduct } = useSupabaseData();
   const { formatCurrency } = useCurrency();
+  const { data: aiData, loading: aiLoading } = useInventoryOptimization();
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
@@ -61,35 +63,114 @@ export const Estoque: React.FC = () => {
   }
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Estoque</h1>
-            <p className="text-gray-600 mt-1">Gerencie seus produtos</p>
-          </div>
-          <button
-            onClick={() => {
-              setEditingProduct(null);
-              setShowForm(true);
-            }}
-            className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-          >
-            <PackagePlus className="w-5 h-5 mr-2" />
-            Novo Produto
-          </button>
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Estoque</h1>
+          <p className="text-gray-600 mt-1">Gerencie seus produtos com inteligência artificial</p>
         </div>
+        <button
+          onClick={() => {
+            setEditingProduct(null);
+            setShowForm(true);
+          }}
+          className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+        >
+          <PackagePlus className="w-5 h-5 mr-2" />
+          Novo Produto
+        </button>
+      </div>
 
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Buscar produtos..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          />
+      {aiData && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl border border-purple-100 p-6">
+            <div className="flex items-center space-x-2 mb-4">
+              <Bot className="w-5 h-5 text-purple-600" />
+              <span className="text-sm font-medium text-purple-600">Score IA</span>
+            </div>
+            <p className="text-3xl font-bold text-gray-900 mb-1">
+              {aiData.optimization_score}%
+            </p>
+            <p className="text-sm text-gray-600">Otimização de estoque</p>
+          </div>
+
+          <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl border border-orange-100 p-6">
+            <div className="flex items-center space-x-2 mb-4">
+              <AlertTriangle className="w-5 h-5 text-orange-600" />
+              <span className="text-sm font-medium text-orange-600">Produtos em Risco</span>
+            </div>
+            <p className="text-3xl font-bold text-gray-900 mb-1">
+              {aiData.products_at_risk + aiData.products_below_min}
+            </p>
+            <p className="text-sm text-gray-600">Necessitam atenção</p>
+          </div>
+
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-100 p-6">
+            <div className="flex items-center space-x-2 mb-4">
+              <TrendingUp className="w-5 h-5 text-green-600" />
+              <span className="text-sm font-medium text-green-600">Valor em Risco</span>
+            </div>
+            <p className="text-3xl font-bold text-gray-900 mb-1">
+              {formatCurrency(aiData.total_value_at_risk)}
+            </p>
+            <p className="text-sm text-gray-600">Para reposição</p>
+          </div>
         </div>
+      )}
+
+      {aiData && aiData.recommendations.length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-100 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <Bot className="w-5 h-5 mr-2 text-purple-600" />
+            Recomendações IA
+          </h3>
+          <div className="space-y-3">
+            {aiData.recommendations.slice(0, 5).map((rec) => (
+              <div
+                key={rec.product_id}
+                className={`flex items-center justify-between p-4 rounded-lg ${
+                  rec.priority === 'high'
+                    ? 'bg-red-50 border border-red-200'
+                    : 'bg-yellow-50 border border-yellow-200'
+                }`}
+              >
+                <div className="flex-1">
+                  <div className="flex items-center space-x-2">
+                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                      rec.priority === 'high'
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {rec.priority === 'high' ? 'URGENTE' : 'ATENÇÃO'}
+                    </span>
+                    <span className="font-medium text-gray-900">{rec.product_name}</span>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-1">{rec.reason}</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Estoque atual: {rec.current_stock} un. | Mínimo: {rec.min_stock} un.
+                    {rec.avg_daily_sales > 0 && ` | Média vendas: ${rec.avg_daily_sales.toFixed(1)} un/dia`}
+                  </p>
+                </div>
+                <div className="text-right ml-4">
+                  <p className="text-sm font-medium text-gray-900">Repor:</p>
+                  <p className="text-2xl font-bold text-purple-600">{rec.recommended_order}</p>
+                  <p className="text-xs text-gray-500">unidades</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+        <input
+          type="text"
+          placeholder="Buscar produtos..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+        />
       </div>
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
