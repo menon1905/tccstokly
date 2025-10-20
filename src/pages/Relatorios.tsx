@@ -12,12 +12,12 @@ import {
   Package,
   DollarSign
 } from 'lucide-react';
-import { useSupabaseData } from '../hooks/useSupabaseData';
+import { useLocalData } from '../hooks/useLocalData';
 import { useCurrency } from '../hooks/useCurrency';
 import { Bar, Line, Doughnut } from 'react-chartjs-2';
 
 export const Relatorios: React.FC = () => {
-  const { products, sales, customers, purchases, loading } = useSupabaseData();
+  const { products, sales, customers, purchases, loading } = useLocalData();
   const { formatCurrency } = useCurrency();
   const [selectedReport, setSelectedReport] = useState('sales');
   const [dateRange, setDateRange] = useState('month');

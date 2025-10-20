@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Lock, Mail, Eye, EyeOff, LogIn } from 'lucide-react';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { auth } from '../lib/auth';
+import { initDB } from '../lib/db';
 
 interface LoginFormProps {
   onLoginSuccess: () => void;
@@ -23,28 +24,20 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     setLoading(true);
     setError(null);
 
-    // Check if Supabase is configured
-    if (!isSupabaseConfigured()) {
-      setError('Sistema não configurado. Entre em contato com o suporte.');
-      setLoading(false);
-      return;
-    }
-
     try {
+      await initDB();
+
       if (isLogin) {
-        // Login
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: formData.email,
-          password: formData.password,
-        });
+        const result = await auth.signIn(formData.email, formData.password);
 
-        if (error) throw error;
+        if (result.error) {
+          throw new Error(result.error);
+        }
 
-        if (data.user) {
+        if (result.user) {
           onLoginSuccess();
         }
       } else {
-        // Registro
         if (formData.password !== formData.confirmPassword) {
           throw new Error('As senhas não coincidem');
         }
@@ -53,48 +46,22 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           throw new Error('A senha deve ter pelo menos 6 caracteres');
         }
 
-        const { data, error } = await supabase.auth.signUp({
-          email: formData.email,
-          password: formData.password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/#/auth/callback`,
-            data: {
-              name: formData.name,
-            }
-          }
-        });
+        const result = await auth.signUp(formData.email, formData.password);
 
-        if (error) throw error;
-
-        if (data.user && !data.user.email_confirmed_at) {
-          setError('Conta criada! Verifique seu email para confirmar sua conta antes de fazer login.');
-          setIsLogin(true); // Switch to login mode
-          setLoading(false);
-          return;
+        if (result.error) {
+          throw new Error(result.error);
         }
 
-        if (data.user) {
+        if (result.user) {
           onLoginSuccess();
         }
       }
     } catch (error) {
       console.error('Erro de autenticação:', error);
       if (error instanceof Error) {
-        if (error.message.includes('email_not_confirmed') || error.message.includes('Email not confirmed')) {
-          setError('Email não confirmado. Verifique sua caixa de entrada e clique no link de confirmação.');
-        } else if (error.message.includes('over_email_send_rate_limit')) {
-          setError('Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.');
-        } else if (error.message.includes('Invalid login credentials')) {
-          setError('Email ou senha incorretos.');
-        } else if (error.message.includes('User already registered')) {
-          setError('Este email já está cadastrado. Tente fazer login.');
-        } else if (error.message.includes('Password should be at least 6 characters')) {
-          setError('A senha deve ter pelo menos 6 caracteres.');
-        } else {
-          setError(`Erro: ${error.message}`);
-        }
+        setError(error.message);
       } else {
-        setError('Erro de conexão. Verifique sua internet.');
+        setError('Erro desconhecido');
       }
     } finally {
       setLoading(false);
@@ -122,15 +89,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           </p>
         </div>
 
-        {/* Email confirmation notice */}
-        {!isLogin && !error && (
-          <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-xs sm:text-sm text-blue-800">
-              <strong>Importante:</strong> Após criar sua conta, você receberá um email de confirmação. 
-              Verifique sua caixa de entrada (incluindo spam) e clique no link para ativar sua conta.
-            </p>
-          </div>
-        )}
 
         {/* Error message */}
         {error && (

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { aiLocal } from '../lib/aiLocal';
 
 interface ProductAnalysis {
   product_id: string;
@@ -32,28 +32,7 @@ export const useInventoryOptimization = () => {
       setLoading(true);
       setError(null);
 
-      const { data: { session } } = await supabase.auth.getSession();
-
-      if (!session) {
-        throw new Error('No active session');
-      }
-
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const response = await fetch(
-        `${supabaseUrl}/functions/v1/inventory-optimization`,
-        {
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch inventory optimization');
-      }
-
-      const result = await response.json();
+      const result = await aiLocal.inventoryOptimization();
       setData(result);
     } catch (err) {
       console.error('Error fetching inventory optimization:', err);

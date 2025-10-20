@@ -15,10 +15,10 @@ import {
   Clock,
   Star
 } from 'lucide-react';
-import { useSupabaseData } from '../hooks/useSupabaseData';
+import { useLocalData } from '../hooks/useLocalData';
 
 export const AIRecommendations: React.FC = () => {
-  const { products, sales, customers, loading } = useSupabaseData();
+  const { products, sales, customers, loading } = useLocalData();
 
   // Gerar recomendações baseadas nos dados reais
   const generateRecommendations = () => {

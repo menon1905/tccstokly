@@ -10,14 +10,14 @@ import {
   Calendar
 } from 'lucide-react';
 import { MetricCard } from '../components/MetricCard';
-import { useSupabaseData } from '../hooks/useSupabaseData';
+import { useLocalData } from '../hooks/useLocalData';
 import { useCurrency } from '../hooks/useCurrency';
 import { useSalesPrediction } from '../hooks/useSalesPrediction';
 import { Line } from 'react-chartjs-2';
 import { SaleForm } from '../components/forms/SaleForm';
 
 export const Vendas: React.FC = () => {
-  const { sales, loading, error, refetch } = useSupabaseData();
+  const { sales, loading, error, refetch } = useLocalData();
   const { formatCurrency } = useCurrency();
   const { predictionData, loading: predictionLoading } = useSalesPrediction();
   const [searchTerm, setSearchTerm] = useState('');

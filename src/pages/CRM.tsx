@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Users as Users2, UserPlus, Search, MoreVertical, CreditCard as Edit, Trash2 } from 'lucide-react';
-import { useSupabaseData } from '../hooks/useSupabaseData';
+import { useLocalData } from '../hooks/useLocalData';
 import { CustomerForm } from '../components/forms/CustomerForm';
 
 export const CRM: React.FC = () => {
-  const { customers, loading, error, addCustomer, updateCustomer, deleteCustomer } = useSupabaseData();
+  const { customers, loading, error, addCustomer, updateCustomer, deleteCustomer } = useLocalData();
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<any>(null);

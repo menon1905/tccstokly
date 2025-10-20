@@ -1,6 +1,6 @@
 import React from 'react';
 import { Bot, TrendingUp, AlertTriangle, Target, Activity, Sparkles, Package, Users, DollarSign, X } from 'lucide-react';
-import { useSupabaseData } from '../hooks/useSupabaseData';
+import { useLocalData } from '../hooks/useLocalData';
 import { useCurrency } from '../hooks/useCurrency';
 
 interface AIInsight {
@@ -19,7 +19,7 @@ interface AIPanelProps {
 }
 
 export const AIPanel: React.FC<AIPanelProps> = ({ onClose }) => {
-  const { products, sales, customers, loading } = useSupabaseData();
+  const { products, sales, customers, loading } = useLocalData();
   const { formatCurrency } = useCurrency();
   const [dismissedInsights, setDismissedInsights] = React.useState<string[]>([]);
 

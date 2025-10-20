@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Package, PackagePlus, Search, MoreVertical, CreditCard as Edit, Trash2, Bot, AlertTriangle, TrendingUp } from 'lucide-react';
-import { useSupabaseData } from '../hooks/useSupabaseData';
+import { useLocalData } from '../hooks/useLocalData';
 import { ProductForm } from '../components/forms/ProductForm';
 import { useCurrency } from '../hooks/useCurrency';
 import { useInventoryOptimization } from '../hooks/useInventoryOptimization';
 
 export const Estoque: React.FC = () => {
-  const { products, loading, error, addProduct, updateProduct, deleteProduct } = useSupabaseData();
+  const { products, loading, error, addProduct, updateProduct, deleteProduct } = useLocalData();
   const { formatCurrency } = useCurrency();
   const { data: aiData, loading: aiLoading } = useInventoryOptimization();
   const [searchTerm, setSearchTerm] = useState('');

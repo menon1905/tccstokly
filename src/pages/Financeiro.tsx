@@ -17,13 +17,13 @@ import {
   Info
 } from 'lucide-react';
 import { MetricCard } from '../components/MetricCard';
-import { useSupabaseData } from '../hooks/useSupabaseData';
+import { useLocalData } from '../hooks/useLocalData';
 import { useCurrency } from '../hooks/useCurrency';
 import { useFinancialInsights } from '../hooks/useFinancialInsights';
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
 
 export const Financeiro: React.FC = () => {
-  const { sales, purchases, loading } = useSupabaseData();
+  const { sales, purchases, loading } = useLocalData();
   const { formatCurrency } = useCurrency();
   const { data: aiData, loading: aiLoading } = useFinancialInsights();
   const navigate = useNavigate();
