@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { auth, User } from '../lib/auth';
+import { supabaseAuth as auth, User } from '../lib/supabaseAuth';
 
 interface AuthContextType {
   user: User | null;

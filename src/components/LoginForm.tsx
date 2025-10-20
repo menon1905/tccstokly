@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Lock, Mail, Eye, EyeOff, LogIn, Building2, Briefcase } from 'lucide-react';
-import { auth } from '../lib/auth';
-import { initDB } from '../lib/db';
+import { supabaseAuth as auth } from '../lib/supabaseAuth';
 
 interface LoginFormProps {
   onLoginSuccess: () => void;
@@ -41,8 +40,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     setError(null);
 
     try {
-      await initDB();
-
       if (isLogin) {
         const result = await auth.signIn(formData.email, formData.password);
 
@@ -62,15 +59,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           throw new Error('A senha deve ter pelo menos 6 caracteres');
         }
 
-        if (!formData.businessName.trim()) {
-          throw new Error('Informe o nome do seu negócio');
-        }
-
         const result = await auth.signUp(
           formData.email,
-          formData.password,
-          formData.businessName,
-          formData.businessSector
+          formData.password
         );
 
         if (result.error) {
