@@ -15,12 +15,24 @@ export const supabaseAuth = {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: window.location.origin,
+        }
       });
 
       if (error) {
         return { user: null, error: error.message };
       }
 
+      // Se o usuário foi criado mas não temos sessão (email precisa ser confirmado)
+      if (data.user && !data.session) {
+        return {
+          user: null,
+          error: 'Verifique seu email para confirmar a conta antes de fazer login.'
+        };
+      }
+
+      // Se temos uma sessão, o usuário foi auto-confirmado e já está logado
       return {
         user: data.user ? {
           id: data.user.id,
