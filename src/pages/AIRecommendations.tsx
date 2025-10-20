@@ -72,64 +72,8 @@ export const AIRecommendations: React.FC = () => {
     );
   }
 
-  if (!hasProducts) {
-    return (
-      <div className="p-6 lg:p-8 min-h-screen flex items-center justify-center">
-        <div className="max-w-2xl w-full">
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl border border-blue-100 p-12 text-center">
-            <div className="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Package className="w-12 h-12 text-white" />
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              Cadastre Seus Primeiros Produtos
-            </h1>
-            <p className="text-lg text-gray-700 mb-8">
-              Para receber recomendações baseadas em IA, comece cadastrando os produtos do seu estoque.
-            </p>
-            <button
-              onClick={() => navigate('/estoque')}
-              className="inline-flex items-center px-8 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-semibold text-lg shadow-lg hover:shadow-xl"
-            >
-              <Plus className="w-6 h-6 mr-3" />
-              Cadastrar Primeiro Produto
-              <ChevronRight className="w-6 h-6 ml-2" />
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!hasSales) {
-    return (
-      <div className="p-6 lg:p-8 min-h-screen flex items-center justify-center">
-        <div className="max-w-2xl w-full">
-          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-3xl border border-green-100 p-12 text-center">
-            <div className="w-24 h-24 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-              <ShoppingCart className="w-12 h-12 text-white" />
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              Ótimo! Agora Registre Suas Vendas
-            </h1>
-            <p className="text-lg text-gray-700 mb-2">
-              Você tem <span className="font-bold text-green-700">{products?.length || 0} produto(s)</span> cadastrado(s).
-            </p>
-            <p className="text-lg text-gray-700 mb-8">
-              Para gerar análises e recomendações inteligentes, registre suas vendas no sistema.
-            </p>
-            <button
-              onClick={() => navigate('/vendas')}
-              className="inline-flex items-center px-8 py-4 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-semibold text-lg shadow-lg hover:shadow-xl"
-            >
-              <ShoppingCart className="w-6 h-6 mr-3" />
-              Registrar Primeira Venda
-              <ChevronRight className="w-6 h-6 ml-2" />
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const showNoProductsCard = !hasProducts;
+  const showNoSalesCard = hasProducts && !hasSales;
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6">
@@ -140,6 +84,49 @@ export const AIRecommendations: React.FC = () => {
         </div>
         <Bot className="w-10 h-10 text-blue-600" />
       </div>
+
+      {showNoProductsCard && (
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-100 p-8 text-center">
+          <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Package className="w-10 h-10 text-white" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">Cadastre Seus Primeiros Produtos</h2>
+          <p className="text-gray-700 mb-6">
+            Para receber recomendações baseadas em IA, comece cadastrando os produtos do seu estoque.
+          </p>
+          <button
+            onClick={() => navigate('/estoque')}
+            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-semibold shadow-lg hover:shadow-xl"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Cadastrar Primeiro Produto
+            <ChevronRight className="w-5 h-5 ml-2" />
+          </button>
+        </div>
+      )}
+
+      {showNoSalesCard && (
+        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border border-green-100 p-8 text-center">
+          <div className="w-20 h-20 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <ShoppingCart className="w-10 h-10 text-white" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">Ótimo! Agora Registre Suas Vendas</h2>
+          <p className="text-gray-700 mb-2">
+            Você tem <span className="font-bold text-green-700">{products?.length || 0} produto(s)</span> cadastrado(s).
+          </p>
+          <p className="text-gray-700 mb-6">
+            Para gerar análises e recomendações inteligentes, registre suas vendas no sistema.
+          </p>
+          <button
+            onClick={() => navigate('/vendas')}
+            className="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-semibold shadow-lg hover:shadow-xl"
+          >
+            <ShoppingCart className="w-5 h-5 mr-2" />
+            Registrar Primeira Venda
+            <ChevronRight className="w-5 h-5 ml-2" />
+          </button>
+        </div>
+      )}
 
       {productAnalysis.topProducts.length > 0 && (
         <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
