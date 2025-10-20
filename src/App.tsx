@@ -22,6 +22,7 @@ import { Configuracoes } from './pages/Configuracoes';
 
 const AppContent: React.FC = () => {
   const { user, loading } = useAuth();
+  const [, setRefresh] = React.useState(0);
 
   if (loading) {
     return (
@@ -35,7 +36,7 @@ const AppContent: React.FC = () => {
   }
 
   if (!user) {
-    return <LoginForm onLoginSuccess={() => {}} />;
+    return <LoginForm onLoginSuccess={() => setRefresh(prev => prev + 1)} />;
   }
 
   return (

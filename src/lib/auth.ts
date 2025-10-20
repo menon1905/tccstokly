@@ -7,6 +7,10 @@ export interface User {
   created_at: string;
 }
 
+const notifyAuthChange = () => {
+  window.dispatchEvent(new CustomEvent('auth-state-change'));
+};
+
 export const auth = {
   signUp: async (email: string, password: string): Promise<{ user: User; error: null } | { user: null; error: string }> => {
     try {
@@ -23,6 +27,8 @@ export const auth = {
 
       setCurrentUserId(newUser.id);
       localStorage.setItem('currentUser', JSON.stringify({ id: newUser.id, email: newUser.email }));
+
+      notifyAuthChange();
 
       return {
         user: {
@@ -51,6 +57,8 @@ export const auth = {
 
       setCurrentUserId(user.id);
       localStorage.setItem('currentUser', JSON.stringify({ id: user.id, email: user.email }));
+
+      notifyAuthChange();
 
       return {
         user: {
@@ -107,11 +115,17 @@ export const auth = {
       }
     };
 
+    const handleAuthChange = () => {
+      checkAuth();
+    };
+
     window.addEventListener('storage', handleStorage);
+    window.addEventListener('auth-state-change', handleAuthChange);
 
     return {
       unsubscribe: () => {
         window.removeEventListener('storage', handleStorage);
+        window.removeEventListener('auth-state-change', handleAuthChange);
       },
     };
   },
