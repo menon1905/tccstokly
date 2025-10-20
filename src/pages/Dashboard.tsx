@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Package,
   TrendingUp,
@@ -27,18 +27,22 @@ export const Dashboard: React.FC = () => {
   const { predictionData } = useSalesPrediction();
   const { data: inventoryData } = useInventoryOptimization();
   const { data: financialData } = useFinancialInsights();
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
 
   const totalProducts = products?.length || 0;
   const totalRevenue = sales?.reduce((sum, sale) => sum + (sale.total || 0), 0) || 0;
   const totalCustomers = customers?.length || 0;
 
-  // Top 5 Produtos
+  // Top 5 Produtos (filtered)
   const productAnalysis = useMemo(() => {
     if (!sales || !products || sales.length === 0 || products.length === 0) {
       return { topProducts: [] };
     }
-    return analyzeProductTrends(sales, products, 30);
-  }, [sales, products]);
+    const filteredSales = selectedProducts.length > 0
+      ? sales.filter(s => selectedProducts.includes(s.product_id))
+      : sales;
+    return analyzeProductTrends(filteredSales, products, 30);
+  }, [sales, products, selectedProducts]);
 
   const topProductsChartData = useMemo(() => {
     if (productAnalysis.topProducts.length === 0) {
@@ -215,13 +219,48 @@ export const Dashboard: React.FC = () => {
 
         {/* Top 5 Produtos */}
         <div className="bg-white rounded-xl border border-gray-100 p-6">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                 <Star className="w-5 h-5 mr-2 text-yellow-500" />
                 Top 5 Produtos
               </h3>
               <p className="text-sm text-gray-600 mt-1">Últimos 30 dias</p>
+            </div>
+          </div>
+
+          {/* Product Filter */}
+          <div className="mb-4">
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setSelectedProducts([])}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  selectedProducts.length === 0
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                Todos
+              </button>
+              {products?.slice(0, 8).map((product) => (
+                <button
+                  key={product.id}
+                  onClick={() => {
+                    setSelectedProducts(prev =>
+                      prev.includes(product.id)
+                        ? prev.filter(id => id !== product.id)
+                        : [...prev, product.id]
+                    );
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    selectedProducts.includes(product.id)
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {product.name}
+                </button>
+              ))}
             </div>
           </div>
           {productAnalysis.topProducts.length > 0 ? (
