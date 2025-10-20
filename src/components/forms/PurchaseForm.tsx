@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { useLocalData } from '../../hooks/useLocalData';
+import { useLocalData } from '../../hooks/useSupabaseData';
 
 interface PurchaseFormProps {
   isOpen: boolean;

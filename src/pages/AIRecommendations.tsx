@@ -9,7 +9,7 @@ import {
   Plus,
   ChevronRight
 } from 'lucide-react';
-import { useLocalData } from '../hooks/useLocalData';
+import { useLocalData } from '../hooks/useSupabaseData';
 import { useCurrency } from '../hooks/useCurrency';
 import { analyzeProductTrends, generatePredictiveInsights } from '../lib/aiEngine';
 import { Bar } from 'react-chartjs-2';

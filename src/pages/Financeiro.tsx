@@ -17,7 +17,7 @@ import {
   Info
 } from 'lucide-react';
 import { MetricCard } from '../components/MetricCard';
-import { useLocalData } from '../hooks/useLocalData';
+import { useLocalData } from '../hooks/useSupabaseData';
 import { useCurrency } from '../hooks/useCurrency';
 import { useFinancialInsights } from '../hooks/useFinancialInsights';
 import { Line, Bar, Doughnut } from 'react-chartjs-2';

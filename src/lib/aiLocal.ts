@@ -1,8 +1,27 @@
-import { localDb } from './localDb';
+import { supabase } from './supabase';
 
 export const aiLocal = {
   salesPrediction: async () => {
-    const sales = await localDb.sales.getAll();
+    const { data: sales, error } = await supabase.from('sales').select('*');
+
+    if (error) {
+      console.error('Error fetching sales:', error);
+      return {
+        error: 'Failed to fetch sales data',
+        message: error.message,
+        predictions: [],
+        model_info: {
+          type: 'error',
+          data_points: 0,
+          days_analyzed: 0,
+          slope: 0,
+          intercept: 0,
+          accuracy_percentage: 0,
+          rmse: 0
+        },
+        historical_data: []
+      };
+    }
 
     if (!sales || sales.length < 7) {
       return {
@@ -99,7 +118,7 @@ export const aiLocal = {
   },
 
   inventoryOptimization: async () => {
-    const products = await localDb.products.getAll();
+    const { data: products } = await supabase.from('products').select('*');
 
     if (!products || products.length === 0) {
       return {
@@ -113,8 +132,8 @@ export const aiLocal = {
     }
 
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-    const allSales = await localDb.sales.getAll();
-    const sales = allSales.filter(s => s.created_at >= thirtyDaysAgo);
+    const { data: allSales } = await supabase.from('sales').select('*');
+    const sales = allSales?.filter(s => s.created_at >= thirtyDaysAgo) || [];
 
     const salesByProduct = new Map<string, number[]>();
     sales.forEach((sale) => {
@@ -206,14 +225,14 @@ export const aiLocal = {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
     const sixtyDaysAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString();
 
-    const allSales = await localDb.sales.getAll();
-    const allPurchases = await localDb.purchases.getAll();
+    const { data: allSales } = await supabase.from('sales').select('*');
+    const { data: allPurchases } = await supabase.from('purchases').select('*');
 
-    const currentSales = allSales.filter(s => s.created_at >= thirtyDaysAgo);
-    const previousSales = allSales.filter(s => s.created_at >= sixtyDaysAgo && s.created_at < thirtyDaysAgo);
+    const currentSales = allSales?.filter(s => s.created_at >= thirtyDaysAgo) || [];
+    const previousSales = allSales?.filter(s => s.created_at >= sixtyDaysAgo && s.created_at < thirtyDaysAgo) || [];
 
-    const currentPurchases = allPurchases.filter(p => p.created_at >= thirtyDaysAgo);
-    const previousPurchases = allPurchases.filter(p => p.created_at >= sixtyDaysAgo && p.created_at < thirtyDaysAgo);
+    const currentPurchases = allPurchases?.filter(p => p.created_at >= thirtyDaysAgo) || [];
+    const previousPurchases = allPurchases?.filter(p => p.created_at >= sixtyDaysAgo && p.created_at < thirtyDaysAgo) || [];
 
     const totalRevenue = currentSales.reduce((sum, sale) => sum + (sale.total || 0), 0);
     const totalExpenses = currentPurchases.reduce((sum, purchase) => sum + (purchase.total || 0), 0);

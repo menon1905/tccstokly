@@ -1,6 +1,6 @@
 import React from 'react';
 import { Bot, TrendingUp, AlertTriangle, Target, Activity, Sparkles, Package, Users, DollarSign, X } from 'lucide-react';
-import { useLocalData } from '../hooks/useLocalData';
+import { useLocalData } from '../hooks/useSupabaseData';
 import { useCurrency } from '../hooks/useCurrency';
 
 interface AIInsight {

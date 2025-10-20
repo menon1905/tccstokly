@@ -12,7 +12,7 @@ import {
   Package,
   DollarSign
 } from 'lucide-react';
-import { useLocalData } from '../hooks/useLocalData';
+import { useLocalData } from '../hooks/useSupabaseData';
 import { useCurrency } from '../hooks/useCurrency';
 import { Bar, Line, Doughnut } from 'react-chartjs-2';
 

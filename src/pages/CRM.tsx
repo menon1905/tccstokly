@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Users as Users2, UserPlus, Search, MoreVertical, CreditCard as Edit, Trash2 } from 'lucide-react';
-import { useLocalData } from '../hooks/useLocalData';
+import { useLocalData } from '../hooks/useSupabaseData';
 import { CustomerForm } from '../components/forms/CustomerForm';
 
 export const CRM: React.FC = () => {

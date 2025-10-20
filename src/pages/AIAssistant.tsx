@@ -10,7 +10,7 @@ import {
   Users,
   Sparkles
 } from 'lucide-react';
-import { useLocalData } from '../hooks/useLocalData';
+import { useLocalData } from '../hooks/useSupabaseData';
 
 interface Message {
   id: string;

@@ -10,7 +10,7 @@ import {
   Calendar
 } from 'lucide-react';
 import { MetricCard } from '../components/MetricCard';
-import { useLocalData } from '../hooks/useLocalData';
+import { useLocalData } from '../hooks/useSupabaseData';
 import { useCurrency } from '../hooks/useCurrency';
 import { useSalesPrediction } from '../hooks/useSalesPrediction';
 import { Line } from 'react-chartjs-2';

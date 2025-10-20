@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Package, PackagePlus, Search, MoreVertical, CreditCard as Edit, Trash2, Bot, AlertTriangle, TrendingUp } from 'lucide-react';
-import { useLocalData } from '../hooks/useLocalData';
+import { useLocalData } from '../hooks/useSupabaseData';
 import { ProductForm } from '../components/forms/ProductForm';
 import { useCurrency } from '../hooks/useCurrency';
 import { useInventoryOptimization } from '../hooks/useInventoryOptimization';
