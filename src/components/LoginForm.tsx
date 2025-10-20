@@ -1,11 +1,26 @@
 import React, { useState } from 'react';
-import { Lock, Mail, Eye, EyeOff, LogIn } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff, LogIn, Building2, Briefcase } from 'lucide-react';
 import { auth } from '../lib/auth';
 import { initDB } from '../lib/db';
 
 interface LoginFormProps {
   onLoginSuccess: () => void;
 }
+
+const BUSINESS_SECTORS = [
+  { value: 'retail', label: 'Varejo / Comércio' },
+  { value: 'food', label: 'Alimentação / Restaurante' },
+  { value: 'fashion', label: 'Moda / Vestuário' },
+  { value: 'electronics', label: 'Eletrônicos / Tecnologia' },
+  { value: 'pharmacy', label: 'Farmácia / Saúde' },
+  { value: 'construction', label: 'Construção / Materiais' },
+  { value: 'automotive', label: 'Automotivo / Peças' },
+  { value: 'beauty', label: 'Beleza / Cosméticos' },
+  { value: 'sports', label: 'Esportes / Fitness' },
+  { value: 'books', label: 'Livraria / Papelaria' },
+  { value: 'services', label: 'Serviços' },
+  { value: 'general', label: 'Geral / Outros' },
+];
 
 export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
@@ -16,7 +31,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     email: '',
     password: '',
     confirmPassword: '',
-    name: ''
+    businessName: '',
+    businessSector: 'general'
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -46,7 +62,16 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           throw new Error('A senha deve ter pelo menos 6 caracteres');
         }
 
-        const result = await auth.signUp(formData.email, formData.password);
+        if (!formData.businessName.trim()) {
+          throw new Error('Informe o nome do seu negócio');
+        }
+
+        const result = await auth.signUp(
+          formData.email,
+          formData.password,
+          formData.businessName,
+          formData.businessSector
+        );
 
         if (result.error) {
           throw new Error(result.error);
@@ -68,7 +93,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData(prev => ({
       ...prev,
       [e.target.name]: e.target.value
@@ -76,11 +101,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 flex items-center justify-center p-3 sm:p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100 flex items-center justify-center p-3 sm:p-4">
       <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-6 lg:p-8 w-full max-w-sm sm:max-w-md">
-        {/* Header */}
         <div className="text-center mb-6 sm:mb-8">
-          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-purple-600 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4">
+          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-blue-600 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4">
             <span className="text-white font-bold text-lg sm:text-2xl">S</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900">STOKLY ERP</h1>
@@ -89,31 +113,60 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           </p>
         </div>
 
-
-        {/* Error message */}
         {error && (
           <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-xs sm:text-sm text-red-800">{error}</p>
           </div>
         )}
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
           {!isLogin && (
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                Nome Completo
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required={!isLogin}
-                className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm sm:text-base"
-                placeholder="Seu nome completo"
-              />
-            </div>
+            <>
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                  Nome do Negócio
+                </label>
+                <div className="relative">
+                  <Building2 className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
+                  <input
+                    type="text"
+                    name="businessName"
+                    value={formData.businessName}
+                    onChange={handleChange}
+                    required={!isLogin}
+                    className="w-full pl-8 sm:pl-12 pr-3 sm:pr-4 py-2 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+                    placeholder="Ex: Loja ABC"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                  Ramo do Negócio
+                </label>
+                <div className="relative">
+                  <Briefcase className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5 pointer-events-none z-10" />
+                  <select
+                    name="businessSector"
+                    value={formData.businessSector}
+                    onChange={handleChange}
+                    required={!isLogin}
+                    className="w-full pl-8 sm:pl-12 pr-3 sm:pr-4 py-2 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base appearance-none bg-white"
+                  >
+                    {BUSINESS_SECTORS.map((sector) => (
+                      <option key={sector.value} value={sector.value}>
+                        {sector.label}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </>
           )}
 
           <div>
@@ -128,7 +181,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full pl-8 sm:pl-12 pr-3 sm:pr-4 py-2 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm sm:text-base"
+                className="w-full pl-8 sm:pl-12 pr-3 sm:pr-4 py-2 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                 placeholder="seu@email.com"
               />
             </div>
@@ -147,7 +200,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                 onChange={handleChange}
                 required
                 minLength={6}
-                className="w-full pl-8 sm:pl-12 pr-8 sm:pr-12 py-2 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm sm:text-base"
+                className="w-full pl-8 sm:pl-12 pr-8 sm:pr-12 py-2 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                 placeholder="Sua senha (mínimo 6 caracteres)"
               />
               <button
@@ -174,7 +227,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                   onChange={handleChange}
                   required={!isLogin}
                   minLength={6}
-                  className="w-full pl-8 sm:pl-12 pr-3 sm:pr-4 py-2 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm sm:text-base"
+                  className="w-full pl-8 sm:pl-12 pr-3 sm:pr-4 py-2 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                   placeholder="Confirme sua senha"
                 />
               </div>
@@ -184,7 +237,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center px-4 py-2 sm:py-3 text-white bg-purple-600 rounded-lg sm:rounded-xl hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm sm:text-base"
+            className="w-full flex items-center justify-center px-4 py-2 sm:py-3 text-white bg-blue-600 rounded-lg sm:rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm sm:text-base font-medium"
           >
             {loading ? (
               <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"></div>
@@ -197,15 +250,14 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           </button>
         </form>
 
-        {/* Toggle */}
         <div className="mt-4 sm:mt-6 text-center">
           <button
             type="button"
             onClick={() => setIsLogin(!isLogin)}
-            className="text-purple-600 hover:text-purple-700 font-medium text-sm sm:text-base"
+            className="text-blue-600 hover:text-blue-700 font-medium text-sm sm:text-base"
           >
-            {isLogin 
-              ? 'Não tem uma conta? Criar conta' 
+            {isLogin
+              ? 'Não tem uma conta? Criar conta'
               : 'Já tem uma conta? Fazer login'
             }
           </button>

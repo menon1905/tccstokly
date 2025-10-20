@@ -96,6 +96,8 @@ interface BoltDB extends DBSchema {
       id: string;
       email: string;
       password: string;
+      business_name: string;
+      business_sector: string;
       created_at: string;
     };
     indexes: { 'by-email': string };
@@ -107,7 +109,7 @@ let dbInstance: IDBPDatabase<BoltDB> | null = null;
 export const initDB = async (): Promise<IDBPDatabase<BoltDB>> => {
   if (dbInstance) return dbInstance;
 
-  dbInstance = await openDB<BoltDB>('bolt-erp-db', 1, {
+  dbInstance = await openDB<BoltDB>('bolt-erp-db', 2, {
     upgrade(db) {
       if (!db.objectStoreNames.contains('products')) {
         const productStore = db.createObjectStore('products', { keyPath: 'id' });

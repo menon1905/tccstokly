@@ -4,6 +4,8 @@ import { setCurrentUserId, generateId } from './db';
 export interface User {
   id: string;
   email: string;
+  business_name?: string;
+  business_sector?: string;
   created_at: string;
 }
 
@@ -12,7 +14,7 @@ const notifyAuthChange = () => {
 };
 
 export const auth = {
-  signUp: async (email: string, password: string): Promise<{ user: User; error: null } | { user: null; error: string }> => {
+  signUp: async (email: string, password: string, businessName?: string, businessSector?: string): Promise<{ user: User; error: null } | { user: null; error: string }> => {
     try {
       const existingUser = await localDb.users.getByEmail(email);
       if (existingUser) {
@@ -23,10 +25,17 @@ export const auth = {
       const newUser = await localDb.users.add({
         email,
         password: hashedPassword,
+        business_name: businessName || '',
+        business_sector: businessSector || 'general',
       });
 
       setCurrentUserId(newUser.id);
-      localStorage.setItem('currentUser', JSON.stringify({ id: newUser.id, email: newUser.email }));
+      localStorage.setItem('currentUser', JSON.stringify({
+        id: newUser.id,
+        email: newUser.email,
+        business_name: newUser.business_name,
+        business_sector: newUser.business_sector
+      }));
 
       notifyAuthChange();
 
@@ -34,6 +43,8 @@ export const auth = {
         user: {
           id: newUser.id,
           email: newUser.email,
+          business_name: newUser.business_name,
+          business_sector: newUser.business_sector,
           created_at: newUser.created_at,
         },
         error: null,
@@ -56,7 +67,12 @@ export const auth = {
       }
 
       setCurrentUserId(user.id);
-      localStorage.setItem('currentUser', JSON.stringify({ id: user.id, email: user.email }));
+      localStorage.setItem('currentUser', JSON.stringify({
+        id: user.id,
+        email: user.email,
+        business_name: user.business_name,
+        business_sector: user.business_sector
+      }));
 
       notifyAuthChange();
 
@@ -64,6 +80,8 @@ export const auth = {
         user: {
           id: user.id,
           email: user.email,
+          business_name: user.business_name,
+          business_sector: user.business_sector,
           created_at: user.created_at,
         },
         error: null,
