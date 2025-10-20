@@ -31,7 +31,7 @@ export const Vendas: React.FC = () => {
     const historicalLabels: string[] = [];
     const historicalData: number[] = [];
     const predictionLabels: string[] = [];
-    const predictionData: number[] = [];
+    const predictedValues: number[] = [];
     const confidenceUpper: number[] = [];
     const confidenceLower: number[] = [];
 
@@ -47,7 +47,7 @@ export const Vendas: React.FC = () => {
     if (predictionData?.predictions) {
       predictionData.predictions.forEach((item) => {
         predictionLabels.push(new Date(item.date).toLocaleDateString('pt-BR'));
-        predictionData.push(item.predicted_value);
+        predictedValues.push(item.predicted_value);
         confidenceUpper.push(item.confidence_interval.upper);
         confidenceLower.push(item.confidence_interval.lower);
       });
@@ -55,7 +55,7 @@ export const Vendas: React.FC = () => {
 
     // Combine labels
     const allLabels = [...historicalLabels, ...predictionLabels];
-    
+
     // Prepare datasets
     const datasets = [
       {
@@ -68,7 +68,7 @@ export const Vendas: React.FC = () => {
       },
       {
         label: 'Previsão IA',
-        data: [...Array(historicalLabels.length).fill(null), ...predictionData],
+        data: [...Array(historicalLabels.length).fill(null), ...predictedValues],
         borderColor: 'rgb(16, 185, 129)',
         backgroundColor: 'rgba(16, 185, 129, 0.1)',
         borderDash: [5, 5],

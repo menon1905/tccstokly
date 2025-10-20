@@ -171,27 +171,28 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Top 5 Produtos */}
-      <div className="bg-white rounded-xl border border-gray-100 p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-              <Star className="w-5 h-5 mr-2 text-yellow-500" />
-              Top 5 Produtos
-            </h3>
-            <p className="text-sm text-gray-600 mt-1">Últimos 30 dias</p>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Performance de Vendas */}
+        <div className="bg-white rounded-xl border border-gray-100 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                <TrendingUp className="w-5 h-5 mr-2 text-purple-600" />
+                Performance de Vendas
+              </h3>
+              <p className="text-sm text-gray-600 mt-1">Histórico vs Previsões</p>
+            </div>
           </div>
-        </div>
-        {productAnalysis.topProducts.length > 0 ? (
           <div className="h-64">
-            <Bar
-              data={topProductsChartData}
+            <Line
+              data={performanceData}
               options={{
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
                   legend: {
-                    display: false,
+                    display: true,
+                    position: 'top' as const,
                   },
                 },
                 scales: {
@@ -210,14 +211,56 @@ export const Dashboard: React.FC = () => {
               }}
             />
           </div>
-        ) : (
-          <div className="h-64 flex items-center justify-center">
-            <div className="text-center">
-              <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500">Cadastre produtos e registre vendas</p>
+        </div>
+
+        {/* Top 5 Produtos */}
+        <div className="bg-white rounded-xl border border-gray-100 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                <Star className="w-5 h-5 mr-2 text-yellow-500" />
+                Top 5 Produtos
+              </h3>
+              <p className="text-sm text-gray-600 mt-1">Últimos 30 dias</p>
             </div>
           </div>
-        )}
+          {productAnalysis.topProducts.length > 0 ? (
+            <div className="h-64">
+              <Bar
+                data={topProductsChartData}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      display: false,
+                    },
+                  },
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      grid: {
+                        color: 'rgba(0, 0, 0, 0.05)',
+                      },
+                    },
+                    x: {
+                      grid: {
+                        display: false,
+                      },
+                    },
+                  },
+                }}
+              />
+            </div>
+          ) : (
+            <div className="h-64 flex items-center justify-center">
+              <div className="text-center">
+                <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                <p className="text-gray-500">Cadastre produtos e registre vendas</p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Recomendações IA */}
