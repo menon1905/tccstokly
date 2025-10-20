@@ -171,99 +171,53 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Top 5 Produtos */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-100 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                <Star className="w-5 h-5 mr-2 text-yellow-500" />
-                Top 5 Produtos
-              </h3>
-              <p className="text-sm text-gray-600 mt-1">Últimos 30 dias</p>
-            </div>
+      {/* Top 5 Produtos */}
+      <div className="bg-white rounded-xl border border-gray-100 p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <Star className="w-5 h-5 mr-2 text-yellow-500" />
+              Top 5 Produtos
+            </h3>
+            <p className="text-sm text-gray-600 mt-1">Últimos 30 dias</p>
           </div>
-          {productAnalysis.topProducts.length > 0 ? (
-            <div className="h-64">
-              <Bar
-                data={topProductsChartData}
-                options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: {
+        </div>
+        {productAnalysis.topProducts.length > 0 ? (
+          <div className="h-64">
+            <Bar
+              data={topProductsChartData}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    display: false,
+                  },
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    grid: {
+                      color: 'rgba(0, 0, 0, 0.05)',
+                    },
+                  },
+                  x: {
+                    grid: {
                       display: false,
                     },
                   },
-                  scales: {
-                    y: {
-                      beginAtZero: true,
-                      grid: {
-                        color: 'rgba(0, 0, 0, 0.05)',
-                      },
-                    },
-                    x: {
-                      grid: {
-                        display: false,
-                      },
-                    },
-                  },
-                }}
-              />
-            </div>
-          ) : (
-            <div className="h-64 flex items-center justify-center">
-              <div className="text-center">
-                <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500">Cadastre produtos e registre vendas</p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Insights Recentes */}
-        <div className="bg-white rounded-xl border border-gray-100 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-              <Bell className="w-5 h-5 mr-2 text-blue-600" />
-              Alertas Recentes
-            </h3>
+                },
+              }}
+            />
           </div>
-          <div className="space-y-3">
-            {recentAlerts.length > 0 ? (
-              recentAlerts.map((alert, index) => (
-                <div
-                  key={index}
-                  className={`p-4 rounded-lg border ${
-                    alert.type === 'danger'
-                      ? 'bg-red-50 border-red-200'
-                      : alert.type === 'warning'
-                      ? 'bg-yellow-50 border-yellow-200'
-                      : 'bg-green-50 border-green-200'
-                  }`}
-                >
-                  <div className="flex items-start space-x-3">
-                    <AlertTriangle
-                      className={`w-5 h-5 flex-shrink-0 mt-0.5 ${
-                        alert.type === 'danger'
-                          ? 'text-red-600'
-                          : alert.type === 'warning'
-                          ? 'text-yellow-600'
-                          : 'text-green-600'
-                      }`}
-                    />
-                    <p className="text-sm text-gray-900">{alert.message}</p>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="text-center py-8">
-                <Bot className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-sm text-gray-500">Nenhum alerta no momento</p>
-              </div>
-            )}
+        ) : (
+          <div className="h-64 flex items-center justify-center">
+            <div className="text-center">
+              <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-500">Cadastre produtos e registre vendas</p>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Recomendações IA */}
@@ -282,6 +236,49 @@ export const Dashboard: React.FC = () => {
             <Activity className="w-6 h-6 text-purple-600 animate-pulse" />
           </div>
 
+          {/* Alertas/Insights Recentes */}
+          <div className="mb-6">
+            <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+              <Bell className="w-4 h-4 mr-2" />
+              Alertas e Insights Recentes
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {recentAlerts.length > 0 ? (
+                recentAlerts.map((alert, index) => (
+                  <div
+                    key={index}
+                    className={`p-3 rounded-lg border ${
+                      alert.type === 'danger'
+                        ? 'bg-red-50 border-red-200'
+                        : alert.type === 'warning'
+                        ? 'bg-yellow-50 border-yellow-200'
+                        : 'bg-green-50 border-green-200'
+                    }`}
+                  >
+                    <div className="flex items-start space-x-2">
+                      <AlertTriangle
+                        className={`w-4 h-4 flex-shrink-0 mt-0.5 ${
+                          alert.type === 'danger'
+                            ? 'text-red-600'
+                            : alert.type === 'warning'
+                            ? 'text-yellow-600'
+                            : 'text-green-600'
+                        }`}
+                      />
+                      <p className="text-xs text-gray-900">{alert.message}</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-3 text-center py-4">
+                  <Bot className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                  <p className="text-xs text-gray-500">Nenhum alerta no momento</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Recomendações Principais */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {inventoryData && inventoryData.recommendations.length > 0 ? (
               inventoryData.recommendations.slice(0, 3).map((rec, index) => (
