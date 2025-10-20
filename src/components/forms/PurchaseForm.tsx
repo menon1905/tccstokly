@@ -18,7 +18,8 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ isOpen, onClose, onS
     quantity: 1,
     unit_cost: 0,
     total: 0,
-    status: 'received'
+    status: 'received',
+    purchase_date: new Date().toISOString().split('T')[0]
   });
 
   useEffect(() => {
@@ -58,7 +59,8 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ isOpen, onClose, onS
         quantity: formData.quantity,
         unit_cost: formData.unit_cost,
         total: formData.total,
-        status: formData.status
+        status: formData.status,
+        created_at: new Date(formData.purchase_date).toISOString()
       });
 
       setFormData({
@@ -67,7 +69,8 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ isOpen, onClose, onS
         quantity: 1,
         unit_cost: 0,
         total: 0,
-        status: 'received'
+        status: 'received',
+        purchase_date: new Date().toISOString().split('T')[0]
       });
 
       onSuccess();
@@ -119,18 +122,33 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ isOpen, onClose, onS
               </select>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Fornecedor *
-              </label>
-              <input
-                type="text"
-                value={formData.supplier}
-                onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                placeholder="Nome do fornecedor"
-                required
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Fornecedor *
+                </label>
+                <input
+                  type="text"
+                  value={formData.supplier}
+                  onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  placeholder="Nome do fornecedor"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Data da Compra *
+                </label>
+                <input
+                  type="date"
+                  value={formData.purchase_date}
+                  onChange={(e) => setFormData({ ...formData, purchase_date: e.target.value })}
+                  max={new Date().toISOString().split('T')[0]}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  required
+                />
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">

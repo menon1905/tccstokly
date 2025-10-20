@@ -18,7 +18,8 @@ export const SaleForm: React.FC<SaleFormProps> = ({ isOpen, onClose, onSuccess }
     quantity: 1,
     unit_price: 0,
     total: 0,
-    status: 'completed'
+    status: 'completed',
+    sale_date: new Date().toISOString().split('T')[0]
   });
 
   useEffect(() => {
@@ -52,7 +53,8 @@ export const SaleForm: React.FC<SaleFormProps> = ({ isOpen, onClose, onSuccess }
         quantity: formData.quantity,
         unit_price: formData.unit_price,
         total: formData.total,
-        status: formData.status
+        status: formData.status,
+        created_at: new Date(formData.sale_date).toISOString()
       });
 
       setFormData({
@@ -61,7 +63,8 @@ export const SaleForm: React.FC<SaleFormProps> = ({ isOpen, onClose, onSuccess }
         quantity: 1,
         unit_price: 0,
         total: 0,
-        status: 'completed'
+        status: 'completed',
+        sale_date: new Date().toISOString().split('T')[0]
       });
 
       onSuccess();
@@ -130,6 +133,20 @@ export const SaleForm: React.FC<SaleFormProps> = ({ isOpen, onClose, onSuccess }
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Data da Venda *
+              </label>
+              <input
+                type="date"
+                value={formData.sale_date}
+                onChange={(e) => setFormData({ ...formData, sale_date: e.target.value })}
+                max={new Date().toISOString().split('T')[0]}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                required
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">

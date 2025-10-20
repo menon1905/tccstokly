@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
-import { 
-  ShoppingCart, 
-  TrendingUp, 
-  DollarSign, 
+import {
+  ShoppingCart,
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
   Plus,
   Search,
   Bot,
   Target,
-  Calendar
+  Calendar,
+  Activity
 } from 'lucide-react';
 import { MetricCard } from '../components/MetricCard';
 import { useLocalData } from '../hooks/useSupabaseData';
@@ -217,18 +219,67 @@ export const Vendas: React.FC = () => {
         </div>
       </div>
 
+      {/* Análise de Tendência */}
+      {predictionData && predictionData.model_info.type !== 'insufficient_data' && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className={`rounded-xl p-6 ${predictionData.model_info.slope > 0 ? 'bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200' : 'bg-gradient-to-br from-red-50 to-orange-50 border border-red-200'}`}>
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-sm font-semibold text-gray-700">Tendência</h4>
+              {predictionData.model_info.slope > 0 ? (
+                <TrendingUp className="w-6 h-6 text-green-600" />
+              ) : (
+                <TrendingDown className="w-6 h-6 text-red-600" />
+              )}
+            </div>
+            <p className={`text-3xl font-bold mb-2 ${predictionData.model_info.slope > 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {predictionData.model_info.slope > 0 ? '↗' : '↘'} {Math.abs(predictionData.model_info.slope).toFixed(2)}
+            </p>
+            <p className="text-sm text-gray-600">
+              {predictionData.model_info.slope > 0 ? 'Vendas em crescimento' : 'Vendas em queda'}
+            </p>
+          </div>
+
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-sm font-semibold text-gray-700">Precisão do Modelo</h4>
+              <Activity className="w-6 h-6 text-blue-600" />
+            </div>
+            <p className="text-3xl font-bold text-blue-600 mb-2">
+              {Math.round(predictionData.model_info.accuracy_percentage)}%
+            </p>
+            <p className="text-sm text-gray-600">
+              Confiança nas previsões
+            </p>
+          </div>
+
+          <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-200 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-sm font-semibold text-gray-700">Dados Analisados</h4>
+              <Calendar className="w-6 h-6 text-purple-600" />
+            </div>
+            <p className="text-3xl font-bold text-purple-600 mb-2">
+              {predictionData.model_info.days_analyzed}
+            </p>
+            <p className="text-sm text-gray-600">
+              Dias de histórico
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Gráfico Principal */}
       <div className="bg-white rounded-xl sm:rounded-2xl border border-gray-100 p-3 sm:p-4 lg:p-6 xl:p-8">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900">Vendas vs Previsão IA</h3>
             <p className="text-sm sm:text-base text-gray-600 mt-1">
-              {predictionLoading ? 'Carregando previsões...' : 
-               predictionData ? `Modelo: ${predictionData.model_info.type} (${predictionData.model_info.data_points} pontos de dados)` :
+              {predictionLoading ? 'Carregando previsões...' :
+               predictionData && predictionData.model_info.type !== 'insufficient_data' ? `Modelo: ${predictionData.model_info.type} (${predictionData.model_info.data_points} pontos de dados)` :
+               predictionData && predictionData.model_info.type === 'insufficient_data' ? 'Adicione mais vendas para gerar previsões (mínimo 7 vendas)' :
                'Dados históricos e previsões inteligentes'}
             </p>
           </div>
-          {predictionData && (
+          {predictionData && predictionData.model_info.type !== 'insufficient_data' && (
             <div className="text-right text-xs sm:text-sm text-gray-600 hidden sm:block">
               <p>Precisão: {Math.round(predictionData.model_info.accuracy_percentage)}%</p>
               <p>RMSE: {formatCurrency(predictionData.model_info.rmse)}</p>
