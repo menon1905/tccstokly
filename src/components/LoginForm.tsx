@@ -26,6 +26,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -38,17 +39,23 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccess(null);
 
     try {
       if (isLogin) {
+        console.log('Tentando fazer login...');
         const result = await auth.signIn(formData.email, formData.password);
+        console.log('Resultado do login:', result);
 
         if (result.error) {
           throw new Error(result.error);
         }
 
         if (result.user) {
-          onLoginSuccess();
+          setSuccess('Login realizado com sucesso!');
+          setTimeout(() => onLoginSuccess(), 500);
+        } else {
+          throw new Error('Falha ao fazer login. Tente novamente.');
         }
       } else {
         if (formData.password !== formData.confirmPassword) {
@@ -59,17 +66,22 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           throw new Error('A senha deve ter pelo menos 6 caracteres');
         }
 
+        console.log('Tentando criar conta...');
         const result = await auth.signUp(
           formData.email,
           formData.password
         );
+        console.log('Resultado da criação:', result);
 
         if (result.error) {
           throw new Error(result.error);
         }
 
         if (result.user) {
-          onLoginSuccess();
+          setSuccess('Conta criada com sucesso! Redirecionando...');
+          setTimeout(() => onLoginSuccess(), 1000);
+        } else {
+          throw new Error('Falha ao criar conta. Tente novamente.');
         }
       }
     } catch (error) {
@@ -77,7 +89,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       if (error instanceof Error) {
         setError(error.message);
       } else {
-        setError('Erro desconhecido');
+        setError('Erro desconhecido. Tente novamente.');
       }
     } finally {
       setLoading(false);
@@ -107,6 +119,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         {error && (
           <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-xs sm:text-sm text-red-800">{error}</p>
+          </div>
+        )}
+
+        {success && (
+          <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-green-50 border border-green-200 rounded-lg">
+            <p className="text-xs sm:text-sm text-green-800">{success}</p>
           </div>
         )}
 
