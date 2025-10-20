@@ -24,11 +24,33 @@ export const supabaseAuth = {
         return { user: null, error: error.message };
       }
 
-      // Se o usuário foi criado mas não temos sessão (email precisa ser confirmado)
+      // Se o usuário foi criado mas não temos sessão, fazer login imediatamente
       if (data.user && !data.session) {
+        console.log('Usuário criado sem sessão, fazendo login automático...');
+
+        // Aguardar um momento para garantir que o usuário foi salvo
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Tentar fazer login com as credenciais
+        const loginResult = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (loginResult.error) {
+          return {
+            user: null,
+            error: 'Conta criada! Por favor, faça login manualmente.'
+          };
+        }
+
         return {
-          user: null,
-          error: 'Verifique seu email para confirmar a conta antes de fazer login.'
+          user: loginResult.data.user ? {
+            id: loginResult.data.user.id,
+            email: loginResult.data.user.email || '',
+            user_metadata: loginResult.data.user.user_metadata
+          } : null,
+          error: null
         };
       }
 
