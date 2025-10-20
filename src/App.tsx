@@ -19,6 +19,7 @@ import { Ajuda } from './pages/Ajuda';
 import { RH } from './pages/RH';
 
 import { Configuracoes } from './pages/Configuracoes';
+import { FloatingAI } from './components/FloatingAI';
 
 const AppContent: React.FC = () => {
   const { user, loading } = useAuth();
@@ -58,6 +59,7 @@ const AppContent: React.FC = () => {
           <Route path="/comunidade" element={<Comunidade />} />
           <Route path="/ajuda" element={<Ajuda />} />
         </Routes>
+        <FloatingAI />
       </Layout>
     </Router>
   );

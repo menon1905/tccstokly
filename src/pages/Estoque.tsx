@@ -81,42 +81,67 @@ export const Estoque: React.FC = () => {
         </button>
       </div>
 
-      {aiData && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl border border-purple-100 p-6">
-            <div className="flex items-center space-x-2 mb-4">
-              <Bot className="w-5 h-5 text-purple-600" />
-              <span className="text-sm font-medium text-purple-600">Score IA</span>
+      {/* AI Intelligence Banner */}
+      <div className="bg-gradient-to-r from-orange-600 to-red-600 rounded-3xl p-1">
+        <div className="bg-white rounded-[20px] p-6">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-gradient-to-r from-orange-600 to-red-600 rounded-xl flex items-center justify-center">
+                <Bot className="w-7 h-7 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">Alertas Inteligentes de Estoque</h3>
+                <p className="text-sm text-gray-600">Monitoramento em tempo real pela IA</p>
+              </div>
             </div>
-            <p className="text-3xl font-bold text-gray-900 mb-1">
-              {aiData.optimization_score}%
-            </p>
-            <p className="text-sm text-gray-600">Otimização de estoque</p>
+            <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
           </div>
 
-          <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl border border-orange-100 p-6">
-            <div className="flex items-center space-x-2 mb-4">
-              <AlertTriangle className="w-5 h-5 text-orange-600" />
-              <span className="text-sm font-medium text-orange-600">Produtos em Risco</span>
-            </div>
-            <p className="text-3xl font-bold text-gray-900 mb-1">
-              {aiData.products_at_risk + aiData.products_below_min}
-            </p>
-            <p className="text-sm text-gray-600">Necessitam atenção</p>
-          </div>
+          {aiData && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl border border-purple-200 p-4">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Bot className="w-5 h-5 text-purple-600" />
+                  <span className="text-xs font-semibold text-purple-600">OTIMIZAÇÃO IA</span>
+                </div>
+                <p className="text-3xl font-bold text-gray-900 mb-1">
+                  {aiData.optimization_score}%
+                </p>
+                <p className="text-xs text-gray-600">Score de eficiência do estoque</p>
+              </div>
 
-          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-100 p-6">
-            <div className="flex items-center space-x-2 mb-4">
-              <TrendingUp className="w-5 h-5 text-green-600" />
-              <span className="text-sm font-medium text-green-600">Valor em Risco</span>
+              <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl border border-orange-200 p-4">
+                <div className="flex items-center space-x-2 mb-2">
+                  <AlertTriangle className="w-5 h-5 text-orange-600" />
+                  <span className="text-xs font-semibold text-orange-600">ATENÇÃO URGENTE</span>
+                </div>
+                <p className="text-3xl font-bold text-gray-900 mb-1">
+                  {aiData.products_at_risk + aiData.products_below_min}
+                </p>
+                <p className="text-xs text-gray-600">Produtos precisam de reposição</p>
+              </div>
+
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 p-4">
+                <div className="flex items-center space-x-2 mb-2">
+                  <TrendingUp className="w-5 h-5 text-green-600" />
+                  <span className="text-xs font-semibold text-green-600">VALOR EM RISCO</span>
+                </div>
+                <p className="text-3xl font-bold text-gray-900 mb-1">
+                  {formatCurrency(aiData.total_value_at_risk)}
+                </p>
+                <p className="text-xs text-gray-600">Investimento necessário</p>
+              </div>
             </div>
-            <p className="text-3xl font-bold text-gray-900 mb-1">
-              {formatCurrency(aiData.total_value_at_risk)}
-            </p>
-            <p className="text-sm text-gray-600">Para reposição</p>
-          </div>
+          )}
+
+          {!aiData && !aiLoading && (
+            <div className="text-center py-8">
+              <Bot className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+              <p className="text-gray-600">Cadastre produtos para receber análises da IA</p>
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
       {aiData && aiData.recommendations.length > 0 && (
         <div className="bg-white rounded-xl border border-gray-100 p-6">

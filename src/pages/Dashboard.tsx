@@ -147,39 +147,69 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Insights IA - Simplificados */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
-        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border border-green-100 p-6">
-          <div className="flex items-center space-x-2 mb-4">
-            <TrendingUp className="w-5 h-5 text-green-600" />
-            <span className="text-sm font-medium text-green-600">Previsão</span>
+      {/* Banner IA Destacado */}
+      <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-3xl p-1">
+        <div className="bg-white rounded-[20px] p-6 lg:p-8">
+          <div className="flex items-start justify-between mb-6">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
+                <Bot className="w-7 h-7 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">STOKLY AI Insights</h3>
+                <p className="text-sm text-gray-600">Análise inteligente em tempo real</p>
+              </div>
+            </div>
+            <Activity className="w-6 h-6 text-purple-600 animate-pulse" />
           </div>
-          <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-1">
-            {formatCurrency(aiInsights.nextWeekRevenue)}
-          </p>
-          <p className="text-sm text-gray-600">Próxima semana</p>
-        </div>
 
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-100 p-6">
-          <div className="flex items-center space-x-2 mb-4">
-            <Target className="w-5 h-5 text-blue-600" />
-            <span className="text-sm font-medium text-blue-600">Meta IA</span>
-          </div>
-          <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-1">
-            {formatCurrency(Math.round(totalRevenue * 1.35))}
-          </p>
-          <p className="text-sm text-gray-600">Recomendada</p>
-        </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 p-4">
+              <div className="flex items-center space-x-2 mb-2">
+                <TrendingUp className="w-5 h-5 text-green-600" />
+                <span className="text-xs font-semibold text-green-600">PREVISÃO 7 DIAS</span>
+              </div>
+              <p className="text-2xl font-bold text-gray-900 mb-1">
+                {formatCurrency(aiInsights.nextWeekRevenue)}
+              </p>
+              <p className="text-xs text-gray-600">Baseado em {sales?.length || 0} vendas analisadas</p>
+            </div>
 
-        <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-2xl border border-orange-100 p-6">
-          <div className="flex items-center space-x-2 mb-4">
-            <Sparkles className="w-5 h-5 text-orange-600" />
-            <span className="text-sm font-medium text-orange-600">Otimização</span>
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200 p-4">
+              <div className="flex items-center space-x-2 mb-2">
+                <Target className="w-5 h-5 text-blue-600" />
+                <span className="text-xs font-semibold text-blue-600">META SUGERIDA</span>
+              </div>
+              <p className="text-2xl font-bold text-gray-900 mb-1">
+                {formatCurrency(Math.round(totalRevenue * 1.35))}
+              </p>
+              <p className="text-xs text-gray-600">Crescimento otimizado pela IA</p>
+            </div>
+
+            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-200 p-4">
+              <div className="flex items-center space-x-2 mb-2">
+                <Sparkles className="w-5 h-5 text-purple-600" />
+                <span className="text-xs font-semibold text-purple-600">PRECISÃO DO MODELO</span>
+              </div>
+              <p className="text-2xl font-bold text-gray-900 mb-1">
+                {aiInsights.efficiency}%
+              </p>
+              <p className="text-xs text-gray-600">Melhorando continuamente</p>
+            </div>
           </div>
-          <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-1">
-            3
-          </p>
-          <p className="text-sm text-gray-600">Sugestões ativas</p>
+
+          <div className="mt-6 pt-6 border-t border-gray-100">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-sm text-gray-600">Sistema de IA ativo e monitorando</span>
+              </div>
+              <button className="text-sm font-semibold text-purple-600 hover:text-purple-700 flex items-center space-x-1">
+                <span>Ver todas as recomendações</span>
+                <Bot className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

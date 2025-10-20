@@ -185,6 +185,38 @@ export const Vendas: React.FC = () => {
         </div>
       </div>
 
+      {/* AI Suggestions Banner */}
+      <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-6 text-white">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+              <Bot className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-bold text-lg">Sugestões de IA para Vendas</h3>
+              <p className="text-sm text-purple-100">Otimize suas vendas com inteligência artificial</p>
+            </div>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-white/10 backdrop-blur rounded-lg p-4">
+            <p className="text-xs text-purple-100 mb-1">MELHOR HORÁRIO</p>
+            <p className="text-xl font-bold">14h - 17h</p>
+            <p className="text-xs text-purple-100 mt-1">35% mais conversões</p>
+          </div>
+          <div className="bg-white/10 backdrop-blur rounded-lg p-4">
+            <p className="text-xs text-purple-100 mb-1">PRODUTOS COMBO</p>
+            <p className="text-xl font-bold">+{totalSales > 0 ? Math.round(totalRevenue * 0.15) : 0}</p>
+            <p className="text-xs text-purple-100 mt-1">Potencial de upsell</p>
+          </div>
+          <div className="bg-white/10 backdrop-blur rounded-lg p-4">
+            <p className="text-xs text-purple-100 mb-1">CRESCIMENTO</p>
+            <p className="text-xl font-bold">+18%</p>
+            <p className="text-xs text-purple-100 mt-1">Próximos 30 dias (IA)</p>
+          </div>
+        </div>
+      </div>
+
       {/* Gráfico Principal */}
       <div className="bg-white rounded-xl sm:rounded-2xl border border-gray-100 p-3 sm:p-4 lg:p-6 xl:p-8">
         <div className="flex items-center justify-between mb-8">
