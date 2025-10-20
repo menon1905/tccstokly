@@ -94,6 +94,7 @@ export const auth = {
   signOut: async (): Promise<void> => {
     localStorage.removeItem('currentUser');
     localStorage.removeItem('currentUserId');
+    notifyAuthChange();
   },
 
   getSession: async (): Promise<{ user: User | null }> => {
