@@ -91,7 +91,7 @@ export const AIAssistant: React.FC = () => {
     },
   ];
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
 
     const userMessage: Message = {
@@ -102,28 +102,65 @@ export const AIAssistant: React.FC = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = inputValue;
+    setInputValue('');
 
-    // Simulate AI response
-    setTimeout(() => {
-      const aiResponse = generateAIResponse(inputValue);
+    const thinkingMessage: Message = {
+      id: 'thinking',
+      type: 'ai',
+      content: 'Pensando...',
+      timestamp: new Date(),
+    };
+    setMessages(prev => [...prev, thinkingMessage]);
+
+    try {
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`;
+      const headers = {
+        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+      };
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          message: currentInput,
+          context: {
+            products,
+            sales,
+            customers,
+          },
+        }),
+      });
+
+      const data = await response.json();
+
+      setMessages(prev => prev.filter(m => m.id !== 'thinking'));
+
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'ai',
-        content: aiResponse,
+        content: data.response || 'Desculpe, ocorreu um erro ao processar sua mensagem.',
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, aiMessage]);
-    }, 1000);
-
-    setInputValue('');
+    } catch (error) {
+      setMessages(prev => prev.filter(m => m.id !== 'thinking'));
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'ai',
+        content: 'Desculpe, houve um erro ao processar sua mensagem. Tente novamente.',
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    }
   };
 
   const handleQuickAction = (prompt: string) => {
     setInputValue(prompt);
-    setTimeout(() => handleSendMessage(), 100);
   };
 
-  const generateAIResponse = (userInput: string): string => {
+  const generateAIResponse_OLD_UNUSED = (userInput: string): string => {
     const input = userInput.toLowerCase();
     
     // Análise de vendas
