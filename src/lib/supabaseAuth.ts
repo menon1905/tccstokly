@@ -24,34 +24,83 @@ export const supabaseAuth = {
         return { user: null, error: error.message };
       }
 
-      // Se o usuário foi criado mas não temos sessão, fazer login imediatamente
+      // Se o usuário foi criado mas não temos sessão, confirmar email automaticamente
       if (data.user && !data.session) {
-        console.log('Usuário criado sem sessão, fazendo login automático...');
+        console.log('Usuário criado sem sessão, confirmando email automaticamente...');
 
-        // Aguardar um momento para garantir que o usuário foi salvo
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        try {
+          // Chamar edge function para confirmar o email
+          const confirmResponse = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auto-confirm-user`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+              },
+              body: JSON.stringify({ userId: data.user.id }),
+            }
+          );
 
-        // Tentar fazer login com as credenciais
-        const loginResult = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+          if (confirmResponse.ok) {
+            console.log('Email confirmado com sucesso, fazendo login...');
 
-        if (loginResult.error) {
+            // Aguardar um momento para a confirmação ser processada
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Tentar fazer login com as credenciais
+            const loginResult = await supabase.auth.signInWithPassword({
+              email,
+              password,
+            });
+
+            if (loginResult.error) {
+              return {
+                user: null,
+                error: 'Conta criada! Por favor, faça login manualmente.'
+              };
+            }
+
+            return {
+              user: loginResult.data.user ? {
+                id: loginResult.data.user.id,
+                email: loginResult.data.user.email || '',
+                user_metadata: loginResult.data.user.user_metadata
+              } : null,
+              error: null
+            };
+          } else {
+            console.log('Erro ao confirmar email, tentando login mesmo assim...');
+
+            // Tentar login de qualquer forma
+            const loginResult = await supabase.auth.signInWithPassword({
+              email,
+              password,
+            });
+
+            if (loginResult.error) {
+              return {
+                user: null,
+                error: 'Conta criada! Por favor, faça login manualmente.'
+              };
+            }
+
+            return {
+              user: loginResult.data.user ? {
+                id: loginResult.data.user.id,
+                email: loginResult.data.user.email || '',
+                user_metadata: loginResult.data.user.user_metadata
+              } : null,
+              error: null
+            };
+          }
+        } catch (confirmError) {
+          console.error('Erro ao confirmar email:', confirmError);
           return {
             user: null,
             error: 'Conta criada! Por favor, faça login manualmente.'
           };
         }
-
-        return {
-          user: loginResult.data.user ? {
-            id: loginResult.data.user.id,
-            email: loginResult.data.user.email || '',
-            user_metadata: loginResult.data.user.user_metadata
-          } : null,
-          error: null
-        };
       }
 
       // Se temos uma sessão, o usuário foi auto-confirmado e já está logado
