@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Users, Save } from 'lucide-react';
 import { isSupabaseConfigured, supabase } from '../../lib/supabase';
+import { formatCPF, validateCPF, formatPhone } from '../../utils/validation';
 
 interface CustomerFormProps {
   isOpen: boolean;
@@ -15,26 +16,29 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({ isOpen, onClose, onS
     name: '',
     email: '',
     phone: '',
+    cpf: '',
     company: ''
   });
+  const [cpfError, setCpfError] = useState('');
 
-  // Preencher formulário quando editando
   React.useEffect(() => {
     if (customer && isOpen) {
       setFormData({
         name: customer.name || '',
         email: customer.email || '',
         phone: customer.phone || '',
+        cpf: customer.cpf || '',
         company: customer.company || ''
       });
     } else if (!customer && isOpen) {
-      // Reset form for new customer
       setFormData({
         name: '',
         email: '',
         phone: '',
+        cpf: '',
         company: ''
       });
+      setCpfError('');
     }
   }, [customer, isOpen]);
 
@@ -57,10 +61,17 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({ isOpen, onClose, onS
         return;
       }
 
+      if (!validateCPF(formData.cpf)) {
+        setCpfError('CPF inválido');
+        setLoading(false);
+        return;
+      }
+
       const customerData = {
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
+        cpf: formData.cpf.replace(/\D/g, ''),
         company: formData.company || null,
         status: 'active',
       };
@@ -83,13 +94,14 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({ isOpen, onClose, onS
 
       if (error) throw error;
 
-      // Reset form
       setFormData({
         name: '',
         email: '',
         phone: '',
+        cpf: '',
         company: ''
       });
+      setCpfError('');
 
       onSuccess();
       onClose();
@@ -108,10 +120,18 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({ isOpen, onClose, onS
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
+    const { name, value } = e.target;
+
+    if (name === 'cpf') {
+      const formatted = formatCPF(value);
+      setFormData(prev => ({ ...prev, cpf: formatted }));
+      setCpfError('');
+    } else if (name === 'phone') {
+      const formatted = formatPhone(value);
+      setFormData(prev => ({ ...prev, phone: formatted }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   if (!isOpen) return null;
@@ -169,14 +189,36 @@ export const CustomerForm: React.FC<CustomerFormProps> = ({ isOpen, onClose, onS
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
+              CPF *
+            </label>
+            <input
+              type="text"
+              name="cpf"
+              value={formData.cpf}
+              onChange={handleChange}
+              required
+              maxLength={14}
+              className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent ${
+                cpfError ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder="000.000.000-00"
+            />
+            {cpfError && (
+              <p className="text-sm text-red-600 mt-1">{cpfError}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Telefone *
             </label>
             <input
-              type="tel"
+              type="text"
               name="phone"
               value={formData.phone}
               onChange={handleChange}
               required
+              maxLength={15}
               className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               placeholder="(11) 99999-9999"
             />

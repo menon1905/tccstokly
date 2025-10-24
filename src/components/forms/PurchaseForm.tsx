@@ -24,7 +24,8 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ isOpen, onClose, onS
     product_id: '',
     quantity: '',
     unit_cost: '',
-    supplier: ''
+    supplier: '',
+    purchase_date: new Date().toISOString().split('T')[0]
   });
 
   useEffect(() => {
@@ -89,17 +90,18 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ isOpen, onClose, onS
           unit_cost: parseFloat(formData.unit_cost),
           supplier: formData.supplier,
           status: 'pending',
-          user_id: user.id
+          user_id: user.id,
+          created_at: new Date(formData.purchase_date).toISOString()
         }]);
 
       if (error) throw error;
 
-      // Reset form
       setFormData({
         product_id: '',
         quantity: '',
         unit_cost: '',
-        supplier: ''
+        supplier: '',
+        purchase_date: new Date().toISOString().split('T')[0]
       });
 
       onSuccess();
@@ -219,6 +221,21 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ isOpen, onClose, onS
                 placeholder="0.00"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Data da Compra *
+            </label>
+            <input
+              type="date"
+              name="purchase_date"
+              value={formData.purchase_date}
+              onChange={handleChange}
+              required
+              max={new Date().toISOString().split('T')[0]}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
           </div>
 
           {total > 0 && (

@@ -30,7 +30,8 @@ export const SaleForm: React.FC<SaleFormProps> = ({ isOpen, onClose, onSuccess }
   const [formData, setFormData] = useState({
     product_id: '',
     customer_id: '',
-    quantity: '1'
+    quantity: '1',
+    sale_date: new Date().toISOString().split('T')[0]
   });
 
   useEffect(() => {
@@ -112,7 +113,8 @@ export const SaleForm: React.FC<SaleFormProps> = ({ isOpen, onClose, onSuccess }
           quantity: quantity,
           unit_price: selectedProduct.price,
           status: 'completed',
-          user_id: user.id
+          user_id: user.id,
+          created_at: new Date(formData.sale_date).toISOString()
         }]);
 
       if (error) throw error;
@@ -128,11 +130,11 @@ export const SaleForm: React.FC<SaleFormProps> = ({ isOpen, onClose, onSuccess }
         // Continua mesmo se não conseguir atualizar o estoque
       }
 
-      // Reset form
       setFormData({
         product_id: '',
         customer_id: '',
-        quantity: '1'
+        quantity: '1',
+        sale_date: new Date().toISOString().split('T')[0]
       });
 
       onSuccess();
@@ -226,25 +228,42 @@ export const SaleForm: React.FC<SaleFormProps> = ({ isOpen, onClose, onSuccess }
             )}
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Quantidade *
-            </label>
-            <input
-              type="number"
-              name="quantity"
-              value={formData.quantity}
-              onChange={handleChange}
-              required
-              min="1"
-              max={selectedProduct?.stock || 999}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            />
-            {selectedProduct && (
-              <p className="text-sm text-gray-500 mt-1">
-                Estoque disponível: {selectedProduct.stock} unidades
-              </p>
-            )}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Quantidade *
+              </label>
+              <input
+                type="number"
+                name="quantity"
+                value={formData.quantity}
+                onChange={handleChange}
+                required
+                min="1"
+                max={selectedProduct?.stock || 999}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              />
+              {selectedProduct && (
+                <p className="text-sm text-gray-500 mt-1">
+                  Estoque: {selectedProduct.stock} un.
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Data da Venda *
+              </label>
+              <input
+                type="date"
+                name="sale_date"
+                value={formData.sale_date}
+                onChange={handleChange}
+                required
+                max={new Date().toISOString().split('T')[0]}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              />
+            </div>
           </div>
 
           {total > 0 && (
