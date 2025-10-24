@@ -6,9 +6,10 @@ interface ProductFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  product?: any;
 }
 
-export const ProductForm: React.FC<ProductFormProps> = ({ isOpen, onClose, onSuccess }) => {
+export const ProductForm: React.FC<ProductFormProps> = ({ isOpen, onClose, onSuccess, product }) => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -20,6 +21,32 @@ export const ProductForm: React.FC<ProductFormProps> = ({ isOpen, onClose, onSuc
     min_stock: '',
     supplier: ''
   });
+
+  React.useEffect(() => {
+    if (product && isOpen) {
+      setFormData({
+        name: product.name || '',
+        sku: product.sku || '',
+        category: product.category || '',
+        price: product.price?.toString() || '',
+        cost: product.cost?.toString() || '',
+        stock: product.stock?.toString() || '',
+        min_stock: product.min_stock?.toString() || '',
+        supplier: product.supplier || ''
+      });
+    } else if (!product && isOpen) {
+      setFormData({
+        name: '',
+        sku: '',
+        category: '',
+        price: '',
+        cost: '',
+        stock: '',
+        min_stock: '',
+        supplier: ''
+      });
+    }
+  }, [product, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,19 +68,30 @@ export const ProductForm: React.FC<ProductFormProps> = ({ isOpen, onClose, onSuc
         return;
       }
 
-      const { error } = await supabase
-        .from('products')
-        .insert([{
-          name: formData.name,
-          sku: formData.sku,
-          category: formData.category,
-          price: parseFloat(formData.price),
-          cost: parseFloat(formData.cost),
-          stock: parseInt(formData.stock),
-          min_stock: parseInt(formData.min_stock),
-          supplier: formData.supplier,
-          user_id: user.id
-        }]);
+      const productData = {
+        name: formData.name,
+        sku: formData.sku,
+        category: formData.category,
+        price: parseFloat(formData.price),
+        cost: parseFloat(formData.cost),
+        stock: parseInt(formData.stock),
+        min_stock: parseInt(formData.min_stock),
+        supplier: formData.supplier
+      };
+
+      let error;
+      if (product) {
+        const result = await supabase
+          .from('products')
+          .update(productData)
+          .eq('id', product.id);
+        error = result.error;
+      } else {
+        const result = await supabase
+          .from('products')
+          .insert([{ ...productData, user_id: user.id }]);
+        error = result.error;
+      }
 
       if (error) {
         throw error;
@@ -112,7 +150,9 @@ export const ProductForm: React.FC<ProductFormProps> = ({ isOpen, onClose, onSuc
             <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
               <Package className="w-5 h-5 text-purple-600" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900">Adicionar Produto</h2>
+            <h2 className="text-2xl font-bold text-gray-900">
+              {product ? 'Editar Produto' : 'Adicionar Produto'}
+            </h2>
           </div>
           <button
             onClick={onClose}
@@ -274,7 +314,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ isOpen, onClose, onSuc
               ) : (
                 <Save className="w-4 h-4 mr-2" />
               )}
-              {loading ? 'Salvando...' : 'Salvar Produto'}
+              {loading ? 'Salvando...' : (product ? 'Atualizar Produto' : 'Salvar Produto')}
             </button>
           </div>
         </form>

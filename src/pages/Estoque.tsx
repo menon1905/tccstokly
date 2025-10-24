@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
-import { 
-  Package, 
-  AlertTriangle, 
-  DollarSign, 
+import {
+  Package,
+  AlertTriangle,
+  DollarSign,
   Plus,
   Search,
   Bot,
   Target,
   Sparkles,
   Trash2,
-  MoreVertical
+  Edit,
+  Eye
 } from 'lucide-react';
 import { MetricCard } from '../components/MetricCard';
 import { useSupabaseData } from '../hooks/useSupabaseData';
@@ -23,6 +24,8 @@ export const Estoque: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showProductForm, setShowProductForm] = useState(false);
   const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
+  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [viewingProduct, setViewingProduct] = useState<any>(null);
 
   const totalProducts = products?.length || 0;
   const lowStockProducts = (products || []).filter(p => p.stock <= p.min_stock).length;
@@ -224,18 +227,37 @@ export const Estoque: React.FC = () => {
                       ? 'Médio'
                       : 'Normal'}
                   </span>
-                  <button
-                    onClick={() => handleDeleteProduct(product.id, product.name)}
-                    disabled={deletingProductId === product.id}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Excluir produto"
-                  >
-                    {deletingProductId === product.id ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
-                    ) : (
-                      <Trash2 className="w-4 h-4" />
-                    )}
-                  </button>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => setViewingProduct(product)}
+                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="Visualizar detalhes"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingProduct(product);
+                        setShowProductForm(true);
+                      }}
+                      className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                      title="Editar produto"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteProduct(product.id, product.name)}
+                      disabled={deletingProductId === product.id}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Excluir produto"
+                    >
+                      {deletingProductId === product.id ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
+                      ) : (
+                        <Trash2 className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -245,12 +267,119 @@ export const Estoque: React.FC = () => {
 
       <ProductForm
         isOpen={showProductForm}
-        onClose={() => setShowProductForm(false)}
+        onClose={() => {
+          setShowProductForm(false);
+          setEditingProduct(null);
+        }}
         onSuccess={() => {
           refetch();
-          alert('Produto adicionado com sucesso!');
+          setEditingProduct(null);
+          alert(editingProduct ? 'Produto atualizado com sucesso!' : 'Produto adicionado com sucesso!');
         }}
+        product={editingProduct}
       />
+
+      {viewingProduct && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-8 w-full max-w-2xl">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Detalhes do Produto</h2>
+              <button
+                onClick={() => setViewingProduct(null)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <span className="text-gray-500 text-2xl">&times;</span>
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Nome</p>
+                  <p className="text-lg font-semibold text-gray-900">{viewingProduct.name}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">SKU</p>
+                  <p className="text-lg font-semibold text-gray-900">{viewingProduct.sku}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Categoria</p>
+                  <p className="text-lg font-semibold text-gray-900">{viewingProduct.category}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Fornecedor</p>
+                  <p className="text-lg font-semibold text-gray-900">{viewingProduct.supplier}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Preço de Venda</p>
+                  <p className="text-lg font-semibold text-green-600">{formatCurrency(viewingProduct.price)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Custo</p>
+                  <p className="text-lg font-semibold text-gray-900">{formatCurrency(viewingProduct.cost)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Estoque Atual</p>
+                  <p className={`text-lg font-semibold ${
+                    viewingProduct.stock <= viewingProduct.min_stock ? 'text-red-600' : 'text-gray-900'
+                  }`}>
+                    {viewingProduct.stock} unidades
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Estoque Mínimo</p>
+                  <p className="text-lg font-semibold text-gray-900">{viewingProduct.min_stock} unidades</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Margem de Lucro</p>
+                  <p className="text-lg font-semibold text-blue-600">
+                    {((viewingProduct.price - viewingProduct.cost) / viewingProduct.cost * 100).toFixed(1)}%
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Valor Total em Estoque</p>
+                  <p className="text-lg font-semibold text-gray-900">
+                    {formatCurrency(viewingProduct.price * viewingProduct.stock)}
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-6 border-t border-gray-200">
+                <p className="text-sm text-gray-600 mb-1">Cadastrado em</p>
+                <p className="text-gray-900">
+                  {new Date(viewingProduct.created_at).toLocaleDateString('pt-BR', {
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200 mt-6">
+              <button
+                onClick={() => setViewingProduct(null)}
+                className="px-6 py-3 text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
+              >
+                Fechar
+              </button>
+              <button
+                onClick={() => {
+                  setEditingProduct(viewingProduct);
+                  setViewingProduct(null);
+                  setShowProductForm(true);
+                }}
+                className="flex items-center px-6 py-3 text-white bg-purple-600 rounded-xl hover:bg-purple-700 transition-colors"
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                Editar Produto
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
-import { 
-  ShoppingCart, 
-  TrendingUp, 
-  DollarSign, 
+import {
+  ShoppingCart,
+  TrendingUp,
+  DollarSign,
   Plus,
   Search,
   Bot,
   Target,
-  Calendar
+  Calendar,
+  Eye,
+  Trash2,
+  X
 } from 'lucide-react';
 import { MetricCard } from '../components/MetricCard';
 import { useSupabaseData } from '../hooks/useSupabaseData';
@@ -15,6 +18,7 @@ import { useCurrency } from '../hooks/useCurrency';
 import { useSalesPrediction } from '../hooks/useSalesPrediction';
 import { Line } from 'react-chartjs-2';
 import { SaleForm } from '../components/forms/SaleForm';
+import { supabase } from '../lib/supabase';
 
 export const Vendas: React.FC = () => {
   const { sales, loading, error, refetch } = useSupabaseData();
@@ -22,6 +26,8 @@ export const Vendas: React.FC = () => {
   const { predictionData, loading: predictionLoading } = useSalesPrediction();
   const [searchTerm, setSearchTerm] = useState('');
   const [showSaleForm, setShowSaleForm] = useState(false);
+  const [viewingSale, setViewingSale] = useState<any>(null);
+  const [deletingSaleId, setDeletingSaleId] = useState<string | null>(null);
 
   const totalSales = sales?.length || 0;
   const totalRevenue = sales?.reduce((sum, sale) => sum + (sale.total || 0), 0) || 0;
@@ -107,6 +113,31 @@ export const Vendas: React.FC = () => {
     nextWeekSales: predictionData?.predictions.slice(0, 7).reduce((sum, p) => sum + p.predicted_value, 0) || 0,
     nextMonthRevenue: predictionData?.predictions.reduce((sum, p) => sum + p.predicted_value, 0) || 0,
     confidence: predictionData?.model_info.accuracy_percentage || 0
+  };
+
+  const handleDeleteSale = async (saleId: string) => {
+    if (!confirm('Tem certeza que deseja excluir esta venda? Esta ação não pode ser desfeita.')) {
+      return;
+    }
+
+    setDeletingSaleId(saleId);
+
+    try {
+      const { error } = await supabase
+        .from('sales')
+        .delete()
+        .eq('id', saleId);
+
+      if (error) throw error;
+
+      alert('Venda excluída com sucesso!');
+      refetch();
+    } catch (error) {
+      console.error('Erro ao excluir venda:', error);
+      alert('Erro ao excluir venda. Tente novamente.');
+    } finally {
+      setDeletingSaleId(null);
+    }
   };
 
   const filteredSales = (sales || []).filter(sale =>
@@ -256,19 +287,40 @@ export const Vendas: React.FC = () => {
         </div>
 
         <div className="space-y-4">
-          {filteredSales.slice(0, 5).map((sale) => (
+          {filteredSales.slice(0, 10).map((sale) => (
             <div key={sale.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-              <div>
+              <div className="flex-1">
                 <p className="font-medium text-gray-900">{sale.customers?.name || 'Cliente não encontrado'}</p>
                 <p className="text-sm text-gray-600">{sale.products?.name || 'Produto não encontrado'}</p>
               </div>
-              <div className="text-right">
+              <div className="text-right mr-4">
                 <p className="font-semibold text-gray-900">
                   {formatCurrency(sale.total)}
                 </p>
                 <p className="text-sm text-gray-500">
                   {new Date(sale.created_at).toLocaleDateString('pt-BR')}
                 </p>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setViewingSale(sale)}
+                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  title="Visualizar detalhes"
+                >
+                  <Eye className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => handleDeleteSale(sale.id)}
+                  disabled={deletingSaleId === sale.id}
+                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Excluir venda"
+                >
+                  {deletingSaleId === sale.id ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
+                  ) : (
+                    <Trash2 className="w-4 h-4" />
+                  )}
+                </button>
               </div>
             </div>
           ))}
@@ -283,6 +335,81 @@ export const Vendas: React.FC = () => {
           alert('Venda registrada com sucesso!');
         }}
       />
+
+      {viewingSale && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-8 w-full max-w-lg">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Detalhes da Venda</h2>
+              <button
+                onClick={() => setViewingSale(null)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Cliente</p>
+                <p className="text-lg font-semibold text-gray-900">{viewingSale.customers?.name || 'N/A'}</p>
+                <p className="text-sm text-gray-500">{viewingSale.customers?.email || ''}</p>
+              </div>
+
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Produto</p>
+                <p className="text-lg font-semibold text-gray-900">{viewingSale.products?.name || 'N/A'}</p>
+                <p className="text-sm text-gray-500">SKU: {viewingSale.products?.sku || 'N/A'}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Quantidade</p>
+                  <p className="text-lg font-semibold text-gray-900">{viewingSale.quantity} un.</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Preço Unitário</p>
+                  <p className="text-lg font-semibold text-gray-900">{formatCurrency(viewingSale.unit_price)}</p>
+                </div>
+              </div>
+
+              <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                <p className="text-sm text-gray-600 mb-1">Valor Total</p>
+                <p className="text-2xl font-bold text-green-900">{formatCurrency(viewingSale.total)}</p>
+              </div>
+
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Data da Venda</p>
+                <p className="text-gray-900">
+                  {new Date(viewingSale.created_at).toLocaleDateString('pt-BR', {
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Status</p>
+                <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                  {viewingSale.status === 'completed' ? 'Concluída' : viewingSale.status}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200 mt-6">
+              <button
+                onClick={() => setViewingSale(null)}
+                className="px-6 py-3 text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

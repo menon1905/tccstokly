@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { 
-  ShoppingBag, 
-  Truck, 
-  DollarSign, 
-  Package, 
+import {
+  ShoppingBag,
+  Truck,
+  DollarSign,
+  Package,
   Plus,
   Search,
   Filter,
@@ -13,18 +13,23 @@ import {
   MoreVertical,
   Clock,
   CheckCircle,
-  XCircle
+  XCircle,
+  Trash2,
+  X
 } from 'lucide-react';
 import { MetricCard } from '../components/MetricCard';
 import { useSupabaseData } from '../hooks/useSupabaseData';
 import { useCurrency } from '../hooks/useCurrency';
 import { PurchaseForm } from '../components/forms/PurchaseForm';
+import { supabase } from '../lib/supabase';
 
 export const Compras: React.FC = () => {
   const { purchases, loading, refetch } = useSupabaseData();
   const { formatCurrency } = useCurrency();
   const [searchTerm, setSearchTerm] = useState('');
   const [showPurchaseForm, setShowPurchaseForm] = useState(false);
+  const [viewingPurchase, setViewingPurchase] = useState<any>(null);
+  const [deletingPurchaseId, setDeletingPurchaseId] = useState<string | null>(null);
 
   const totalPurchases = purchases.length;
   const totalSpent = (purchases || []).reduce((sum, purchase) => sum + (purchase.total || 0), 0);
@@ -72,6 +77,31 @@ export const Compras: React.FC = () => {
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const handleDeletePurchase = async (purchaseId: string) => {
+    if (!confirm('Tem certeza que deseja excluir esta compra? Esta ação não pode ser desfeita.')) {
+      return;
+    }
+
+    setDeletingPurchaseId(purchaseId);
+
+    try {
+      const { error } = await supabase
+        .from('purchases')
+        .delete()
+        .eq('id', purchaseId);
+
+      if (error) throw error;
+
+      alert('Compra excluída com sucesso!');
+      refetch();
+    } catch (error) {
+      console.error('Erro ao excluir compra:', error);
+      alert('Erro ao excluir compra. Tente novamente.');
+    } finally {
+      setDeletingPurchaseId(null);
     }
   };
 
@@ -243,14 +273,24 @@ export const Compras: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center space-x-2">
-                      <button className="text-gray-400 hover:text-gray-600 transition-colors">
+                      <button
+                        onClick={() => setViewingPurchase(purchase)}
+                        className="text-blue-600 hover:text-blue-700 transition-colors"
+                        title="Visualizar detalhes"
+                      >
                         <Eye className="w-4 h-4" />
                       </button>
-                      <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                        <MoreVertical className="w-4 h-4" />
+                      <button
+                        onClick={() => handleDeletePurchase(purchase.id)}
+                        disabled={deletingPurchaseId === purchase.id}
+                        className="text-red-600 hover:text-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Excluir compra"
+                      >
+                        {deletingPurchaseId === purchase.id ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
+                        ) : (
+                          <Trash2 className="w-4 h-4" />
+                        )}
                       </button>
                     </div>
                   </td>
@@ -269,6 +309,85 @@ export const Compras: React.FC = () => {
           alert('Compra registrada com sucesso!');
         }}
       />
+
+      {viewingPurchase && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-8 w-full max-w-lg">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Detalhes da Compra</h2>
+              <button
+                onClick={() => setViewingPurchase(null)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Fornecedor</p>
+                <p className="text-lg font-semibold text-gray-900">{viewingPurchase.supplier}</p>
+              </div>
+
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Produto</p>
+                <p className="text-lg font-semibold text-gray-900">{viewingPurchase.products?.name || 'N/A'}</p>
+                <p className="text-sm text-gray-500">SKU: {viewingPurchase.products?.sku || 'N/A'}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Quantidade</p>
+                  <p className="text-lg font-semibold text-gray-900">{viewingPurchase.quantity} un.</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Custo Unitário</p>
+                  <p className="text-lg font-semibold text-gray-900">{formatCurrency(viewingPurchase.unit_cost)}</p>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <p className="text-sm text-gray-600 mb-1">Custo Total</p>
+                <p className="text-2xl font-bold text-blue-900">{formatCurrency(viewingPurchase.total)}</p>
+              </div>
+
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Data da Compra</p>
+                <p className="text-gray-900">
+                  {new Date(viewingPurchase.created_at).toLocaleDateString('pt-BR', {
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Status</p>
+                <div className="flex items-center space-x-2">
+                  {getStatusIcon(viewingPurchase.status)}
+                  <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
+                    getStatusColor(viewingPurchase.status)
+                  }`}>
+                    {getStatusText(viewingPurchase.status)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200 mt-6">
+              <button
+                onClick={() => setViewingPurchase(null)}
+                className="px-6 py-3 text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
