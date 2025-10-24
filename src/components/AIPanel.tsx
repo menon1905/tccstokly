@@ -1,6 +1,6 @@
 import React from 'react';
 import { Bot, TrendingUp, AlertTriangle, Target, Activity, Sparkles, Package, Users, DollarSign, X } from 'lucide-react';
-import { useLocalData } from '../hooks/useSupabaseData';
+import { useSupabaseData } from '../hooks/useSupabaseData';
 import { useCurrency } from '../hooks/useCurrency';
 
 interface AIInsight {
@@ -14,12 +14,8 @@ interface AIInsight {
   timestamp: Date;
 }
 
-interface AIPanelProps {
-  onClose?: () => void;
-}
-
-export const AIPanel: React.FC<AIPanelProps> = ({ onClose }) => {
-  const { products, sales, customers, loading } = useLocalData();
+export const AIPanel: React.FC = () => {
+  const { products, sales, customers, loading } = useSupabaseData();
   const { formatCurrency } = useCurrency();
   const [dismissedInsights, setDismissedInsights] = React.useState<string[]>([]);
 
@@ -126,16 +122,6 @@ export const AIPanel: React.FC<AIPanelProps> = ({ onClose }) => {
   return (
     <div className="w-80 bg-white border-l border-gray-100 h-screen overflow-y-auto">
       <div className="p-6">
-        {/* Close button for mobile */}
-        {onClose && (
-          <button
-            onClick={onClose}
-            className="xl:hidden absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        )}
-        
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center">
             <Bot className="w-5 h-5 mr-2 text-purple-600" />

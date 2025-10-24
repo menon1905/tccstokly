@@ -407,125 +407,121 @@ export const Comunidade: React.FC = () => {
 
   return (
     <>
-      <div className="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6">
+      <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Comunidade STOKLY</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Comunidade STOKLY</h1>
           <p className="text-gray-600">Conecte-se, aprenda e compartilhe conhecimento</p>
         </div>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-          <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600">
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 text-sm text-gray-600">
             <Users className="w-4 h-4" />
             <span>{totalMembers.toLocaleString()} membros ativos</span>
           </div>
-          <div className="flex items-center space-x-2 sm:space-x-4">
-            <button 
-              onClick={handleToggleNotifications}
-              className={`flex items-center px-3 sm:px-4 py-2 rounded-lg transition-colors text-xs sm:text-sm ${
-                notificationsEnabled 
-                  ? 'bg-green-600 text-white hover:bg-green-700' 
-                  : 'bg-gray-600 text-white hover:bg-gray-700'
-              }`}
-            >
-              <MessageSquare className="w-4 h-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">{notificationsEnabled ? 'Notificações ON' : 'Ser Notificado'}</span>
-              <span className="sm:hidden">{notificationsEnabled ? 'ON' : 'OFF'}</span>
-            </button>
-            <button 
-              onClick={() => setShowNewPostForm(true)}
-              className="flex items-center px-3 sm:px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-xs sm:text-sm">
-              <MessageSquare className="w-4 h-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Nova Discussão</span>
-              <span className="sm:hidden">Novo</span>
-            </button>
-          </div>
+          <button 
+            onClick={handleToggleNotifications}
+            className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
+              notificationsEnabled 
+                ? 'bg-green-600 text-white hover:bg-green-700' 
+                : 'bg-gray-600 text-white hover:bg-gray-700'
+            }`}
+          >
+            <MessageSquare className="w-4 h-4 mr-2" />
+            {notificationsEnabled ? 'Notificações ON' : 'Ser Notificado'}
+          </button>
+          <button 
+            onClick={() => setShowNewPostForm(true)}
+            className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+            <MessageSquare className="w-4 h-4 mr-2" />
+            Nova Discussão
+          </button>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-        <div className="bg-white rounded-lg sm:rounded-xl border border-gray-200 p-3 sm:p-4 lg:p-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 sm:w-10 h-10 lg:w-12 lg:h-12 bg-purple-100 rounded-lg sm:rounded-xl flex items-center justify-center">
-              <MessageSquare className="w-4 h-4 sm:w-5 h-5 lg:w-6 lg:h-6 text-purple-600" />
+            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+              <MessageSquare className="w-6 h-6 text-purple-600" />
             </div>
             <div>
-              <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{totalDiscussions}</p>
-              <p className="text-xs sm:text-sm text-gray-600">Discussões</p>
+              <p className="text-2xl font-bold text-gray-900">{totalDiscussions}</p>
+              <p className="text-sm text-gray-600">Discussões</p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg sm:rounded-xl border border-gray-200 p-3 sm:p-4 lg:p-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 sm:w-10 h-10 lg:w-12 lg:h-12 bg-green-100 rounded-lg sm:rounded-xl flex items-center justify-center">
-              <Users className="w-4 h-4 sm:w-5 h-5 lg:w-6 lg:h-6 text-green-600" />
+            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+              <Users className="w-6 h-6 text-green-600" />
             </div>
             <div>
-              <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{totalMembers.toLocaleString()}</p>
-              <p className="text-xs sm:text-sm text-gray-600">Membros</p>
+              <p className="text-2xl font-bold text-gray-900">{totalMembers.toLocaleString()}</p>
+              <p className="text-sm text-gray-600">Membros</p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg sm:rounded-xl border border-gray-200 p-3 sm:p-4 lg:p-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 sm:w-10 h-10 lg:w-12 lg:h-12 bg-blue-100 rounded-lg sm:rounded-xl flex items-center justify-center">
-              <Heart className="w-4 h-4 sm:w-5 h-5 lg:w-6 lg:h-6 text-blue-600" />
+            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+              <Heart className="w-6 h-6 text-blue-600" />
             </div>
             <div>
-              <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{totalLikes}</p>
-              <p className="text-xs sm:text-sm text-gray-600">Curtidas</p>
+              <p className="text-2xl font-bold text-gray-900">{totalLikes}</p>
+              <p className="text-sm text-gray-600">Curtidas</p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg sm:rounded-xl border border-gray-200 p-3 sm:p-4 lg:p-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 sm:w-10 h-10 lg:w-12 lg:h-12 bg-orange-100 rounded-lg sm:rounded-xl flex items-center justify-center">
-              <Award className="w-4 h-4 sm:w-5 h-5 lg:w-6 lg:h-6 text-orange-600" />
+            <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+              <Award className="w-6 h-6 text-orange-600" />
             </div>
             <div>
-              <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{totalExperts}</p>
-              <p className="text-xs sm:text-sm text-gray-600">Especialistas</p>
+              <p className="text-2xl font-bold text-gray-900">{totalExperts}</p>
+              <p className="text-sm text-gray-600">Especialistas</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Navigation Tabs */}
-      <div className="bg-white rounded-lg sm:rounded-xl border border-gray-200 p-3 sm:p-4 lg:p-6">
-        <div className="flex items-center space-x-4 sm:space-x-8 mb-4 sm:mb-6 overflow-x-auto">
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="flex items-center space-x-8 mb-6">
           <button
             onClick={() => setActiveTab('forum')}
-            className={`flex items-center space-x-2 pb-2 border-b-2 transition-colors whitespace-nowrap ${
+            className={`flex items-center space-x-2 pb-2 border-b-2 transition-colors ${
               activeTab === 'forum'
                 ? 'border-purple-600 text-purple-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
             }`}
           >
             <MessageSquare className="w-4 h-4" />
-            <span className="font-medium text-sm sm:text-base">Fórum</span>
+            <span className="font-medium">Fórum</span>
           </button>
           <button
             onClick={() => setActiveTab('resources')}
-            className={`flex items-center space-x-2 pb-2 border-b-2 transition-colors whitespace-nowrap ${
+            className={`flex items-center space-x-2 pb-2 border-b-2 transition-colors ${
               activeTab === 'resources'
                 ? 'border-purple-600 text-purple-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
             }`}
           >
             <BookOpen className="w-4 h-4" />
-            <span className="font-medium text-sm sm:text-base">Recursos</span>
+            <span className="font-medium">Recursos</span>
           </button>
           <button
             onClick={() => setActiveTab('events')}
-            className={`flex items-center space-x-2 pb-2 border-b-2 transition-colors whitespace-nowrap ${
+            className={`flex items-center space-x-2 pb-2 border-b-2 transition-colors ${
               activeTab === 'events'
                 ? 'border-purple-600 text-purple-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
             }`}
           >
             <Calendar className="w-4 h-4" />
-            <span className="font-medium text-sm sm:text-base">Eventos</span>
+            <span className="font-medium">Eventos</span>
           </button>
         </div>
 

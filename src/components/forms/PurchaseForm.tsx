@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
-import { useLocalData } from '../../hooks/useSupabaseData';
+import { X, ShoppingBag, Save } from 'lucide-react';
+import { useCurrency } from '../../hooks/useCurrency';
+import { isSupabaseConfigured, supabase } from '../../lib/supabase';
+
+interface Product {
+  id: string;
+  name: string;
+  cost: number;
+  supplier: string;
+}
 
 interface PurchaseFormProps {
   isOpen: boolean;
@@ -9,230 +17,243 @@ interface PurchaseFormProps {
 }
 
 export const PurchaseForm: React.FC<PurchaseFormProps> = ({ isOpen, onClose, onSuccess }) => {
-  const { products, addPurchase } = useLocalData();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { formatCurrency } = useCurrency();
+  const [products, setProducts] = useState<Product[]>([]);
   const [formData, setFormData] = useState({
     product_id: '',
-    supplier: '',
-    quantity: 1,
-    unit_cost: 0,
-    total: 0,
-    status: 'received',
-    purchase_date: new Date().toISOString().split('T')[0]
+    quantity: '',
+    unit_cost: '',
+    supplier: ''
   });
 
   useEffect(() => {
-    if (formData.product_id && products) {
-      const product = products.find(p => p.id === formData.product_id);
-      if (product) {
-        const unitCost = product.cost || 0;
-        const supplier = product.supplier || '';
-        const total = unitCost * formData.quantity;
-        setFormData(prev => ({
-          ...prev,
-          unit_cost: unitCost,
-          supplier: supplier,
-          total: total
-        }));
-      }
+    if (isOpen) {
+      fetchProducts();
     }
-  }, [formData.product_id, formData.quantity, products]);
+  }, [isOpen]);
+
+  const fetchProducts = async () => {
+    if (!isSupabaseConfigured()) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('id, name, cost, supplier')
+        .order('name');
+
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (error) {
+      console.error('Erro ao buscar produtos:', error);
+      setProducts([]);
+    }
+  };
+
+  const handleProductChange = (productId: string) => {
+    const selectedProduct = products.find(p => p.id === productId);
+    if (selectedProduct) {
+      setFormData(prev => ({
+        ...prev,
+        product_id: productId,
+        unit_cost: selectedProduct.cost.toString(),
+        supplier: selectedProduct.supplier
+      }));
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
 
     try {
-      if (!formData.product_id) {
-        throw new Error('Selecione um produto');
+      if (!isSupabaseConfigured()) {
+        alert('Sistema não configurado. Entre em contato com o suporte.');
+        setLoading(false);
+        return;
       }
 
-      if (!formData.supplier.trim()) {
-        throw new Error('Informe o fornecedor');
+      // Check authentication
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        alert('Você precisa estar logado para registrar compras.');
+        setLoading(false);
+        return;
       }
 
-      await addPurchase({
-        product_id: formData.product_id,
-        supplier: formData.supplier,
-        quantity: formData.quantity,
-        unit_cost: formData.unit_cost,
-        total: formData.total,
-        status: formData.status,
-        created_at: new Date(formData.purchase_date).toISOString()
-      });
+      const { error } = await supabase
+        .from('purchases')
+        .insert([{
+          product_id: formData.product_id,
+          quantity: parseInt(formData.quantity),
+          unit_cost: parseFloat(formData.unit_cost),
+          supplier: formData.supplier,
+          status: 'pending',
+          user_id: user.id
+        }]);
 
+      if (error) throw error;
+
+      // Reset form
       setFormData({
         product_id: '',
-        supplier: '',
-        quantity: 1,
-        unit_cost: 0,
-        total: 0,
-        status: 'received',
-        purchase_date: new Date().toISOString().split('T')[0]
+        quantity: '',
+        unit_cost: '',
+        supplier: ''
       });
 
       onSuccess();
       onClose();
-    } catch (err) {
-      console.error('Error creating purchase:', err);
-      setError(err instanceof Error ? err.message : 'Erro ao criar compra');
+    } catch (error) {
+      console.error('Erro ao registrar compra:', error);
+      alert('Erro ao registrar compra. Verifique sua conexão e tente novamente.');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    if (e.target.name === 'product_id') {
+      handleProductChange(e.target.value);
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [e.target.name]: e.target.value
+      }));
+    }
+  };
+
+  const total = parseFloat(formData.quantity || '0') * parseFloat(formData.unit_cost || '0');
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Nova Compra</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-              <X className="w-6 h-6" />
-            </button>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl p-8 w-full max-w-lg">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+              <ShoppingBag className="w-5 h-5 text-blue-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900">Nova Compra</h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Produto *
+            </label>
+            <select
+              name="product_id"
+              value={formData.product_id}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Selecione um produto</option>
+              {products.map(product => (
+                <option key={product.id} value={product.id}>
+                  {product.name}
+                </option>
+              ))}
+            </select>
+            {products.length === 0 && (
+              <p className="text-sm text-gray-500 mt-1">
+                Nenhum produto encontrado. Cadastre produtos primeiro.
+              </p>
+            )}
           </div>
 
-          {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-800">{error}</p>
-            </div>
-          )}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Fornecedor *
+            </label>
+            <input
+              type="text"
+              name="supplier"
+              value={formData.supplier}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Nome do fornecedor"
+            />
+          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Produto *
-              </label>
-              <select
-                value={formData.product_id}
-                onChange={(e) => setFormData({ ...formData, product_id: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                required
-              >
-                <option value="">Selecione um produto</option>
-                {products?.map((product) => (
-                  <option key={product.id} value={product.id}>
-                    {product.name} - Custo: R$ {product.cost?.toFixed(2)}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Fornecedor *
-                </label>
-                <input
-                  type="text"
-                  value={formData.supplier}
-                  onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                  placeholder="Nome do fornecedor"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Data da Compra *
-                </label>
-                <input
-                  type="date"
-                  value={formData.purchase_date}
-                  onChange={(e) => setFormData({ ...formData, purchase_date: e.target.value })}
-                  max={new Date().toISOString().split('T')[0]}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Quantidade *
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  value={formData.quantity}
-                  onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 1 })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Custo Unitário
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.unit_cost}
-                  onChange={(e) => {
-                    const unitCost = parseFloat(e.target.value) || 0;
-                    setFormData({
-                      ...formData,
-                      unit_cost: unitCost,
-                      total: unitCost * formData.quantity
-                    });
-                  }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Total
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Quantidade *
               </label>
               <input
                 type="number"
-                step="0.01"
-                value={formData.total}
-                readOnly
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 font-bold text-lg"
+                name="quantity"
+                value={formData.quantity}
+                onChange={handleChange}
+                required
+                min="1"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="0"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Status
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Custo Unitário *
               </label>
-              <select
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="received">Recebida</option>
-                <option value="pending">Pendente</option>
-                <option value="cancelled">Cancelada</option>
-              </select>
+              <input
+                type="number"
+                name="unit_cost"
+                value={formData.unit_cost}
+                onChange={handleChange}
+                required
+                step="0.01"
+                min="0"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="0.00"
+              />
             </div>
+          </div>
 
-            <div className="flex justify-end gap-3 pt-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
-                disabled={loading}
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                disabled={loading}
-              >
-                {loading ? 'Salvando...' : 'Registrar Compra'}
-              </button>
+          {total > 0 && (
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-blue-800">Total da Compra:</span>
+                <span className="text-lg font-bold text-blue-900">
+                  {formatCurrency(total)}
+                </span>
+              </div>
             </div>
-          </form>
-        </div>
+          )}
+
+          <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-6 py-3 text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={loading || !formData.product_id || !formData.quantity || !formData.unit_cost}
+              className="flex items-center px-6 py-3 text-white bg-blue-600 rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {loading ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              ) : (
+                <Save className="w-4 h-4 mr-2" />
+              )}
+              {loading ? 'Salvando...' : 'Registrar Compra'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

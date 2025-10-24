@@ -1,63 +1,50 @@
 import React, { useState } from 'react';
-import { Lock, Mail, Eye, EyeOff, LogIn, Building2, Briefcase } from 'lucide-react';
-import { supabaseAuth as auth } from '../lib/supabaseAuth';
+import { Lock, Mail, Eye, EyeOff, LogIn } from 'lucide-react';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 interface LoginFormProps {
   onLoginSuccess: () => void;
 }
-
-const BUSINESS_SECTORS = [
-  { value: 'retail', label: 'Varejo / Comércio' },
-  { value: 'food', label: 'Alimentação / Restaurante' },
-  { value: 'fashion', label: 'Moda / Vestuário' },
-  { value: 'electronics', label: 'Eletrônicos / Tecnologia' },
-  { value: 'pharmacy', label: 'Farmácia / Saúde' },
-  { value: 'construction', label: 'Construção / Materiais' },
-  { value: 'automotive', label: 'Automotivo / Peças' },
-  { value: 'beauty', label: 'Beleza / Cosméticos' },
-  { value: 'sports', label: 'Esportes / Fitness' },
-  { value: 'books', label: 'Livraria / Papelaria' },
-  { value: 'services', label: 'Serviços' },
-  { value: 'general', label: 'Geral / Outros' },
-];
 
 export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     confirmPassword: '',
-    businessName: '',
-    businessSector: 'general'
+    name: ''
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setSuccess(null);
+
+    // Check if Supabase is configured
+    if (!isSupabaseConfigured()) {
+      setError('Sistema não configurado. Entre em contato com o suporte.');
+      setLoading(false);
+      return;
+    }
 
     try {
       if (isLogin) {
-        console.log('Tentando fazer login...');
-        const result = await auth.signIn(formData.email, formData.password);
-        console.log('Resultado do login:', result);
+        // Login
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
 
-        if (result.error) {
-          throw new Error(result.error);
-        }
+        if (error) throw error;
 
-        if (result.user) {
-          setSuccess('Login realizado com sucesso!');
-          setTimeout(() => onLoginSuccess(), 500);
-        } else {
-          throw new Error('Falha ao fazer login. Tente novamente.');
+        if (data.user) {
+          onLoginSuccess();
         }
       } else {
+        // Registro
         if (formData.password !== formData.confirmPassword) {
           throw new Error('As senhas não coincidem');
         }
@@ -66,37 +53,55 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           throw new Error('A senha deve ter pelo menos 6 caracteres');
         }
 
-        console.log('Tentando criar conta...');
-        const result = await auth.signUp(
-          formData.email,
-          formData.password
-        );
-        console.log('Resultado da criação:', result);
+        const { data, error } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/#/auth/callback`,
+            data: {
+              name: formData.name,
+            }
+          }
+        });
 
-        if (result.error) {
-          throw new Error(result.error);
+        if (error) throw error;
+
+        if (data.user && !data.user.email_confirmed_at) {
+          setError('Conta criada! Verifique seu email para confirmar sua conta antes de fazer login.');
+          setIsLogin(true); // Switch to login mode
+          setLoading(false);
+          return;
         }
 
-        if (result.user) {
-          setSuccess('Conta criada com sucesso! Redirecionando...');
-          setTimeout(() => onLoginSuccess(), 1000);
-        } else {
-          throw new Error('Falha ao criar conta. Tente novamente.');
+        if (data.user) {
+          onLoginSuccess();
         }
       }
     } catch (error) {
       console.error('Erro de autenticação:', error);
       if (error instanceof Error) {
-        setError(error.message);
+        if (error.message.includes('email_not_confirmed') || error.message.includes('Email not confirmed')) {
+          setError('Email não confirmado. Verifique sua caixa de entrada e clique no link de confirmação.');
+        } else if (error.message.includes('over_email_send_rate_limit')) {
+          setError('Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.');
+        } else if (error.message.includes('Invalid login credentials')) {
+          setError('Email ou senha incorretos.');
+        } else if (error.message.includes('User already registered')) {
+          setError('Este email já está cadastrado. Tente fazer login.');
+        } else if (error.message.includes('Password should be at least 6 characters')) {
+          setError('A senha deve ter pelo menos 6 caracteres.');
+        } else {
+          setError(`Erro: ${error.message}`);
+        }
       } else {
-        setError('Erro desconhecido. Tente novamente.');
+        setError('Erro de conexão. Verifique sua internet.');
       }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({
       ...prev,
       [e.target.name]: e.target.value
@@ -104,104 +109,79 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100 flex items-center justify-center p-3 sm:p-4">
-      <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-6 lg:p-8 w-full max-w-sm sm:max-w-md">
-        <div className="text-center mb-6 sm:mb-8">
-          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-blue-600 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4">
-            <span className="text-white font-bold text-lg sm:text-2xl">S</span>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <span className="text-white font-bold text-2xl">S</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">STOKLY ERP</h1>
-          <p className="text-sm sm:text-base text-gray-600 mt-1 sm:mt-2">
+          <h1 className="text-2xl font-bold text-gray-900">STOKLY ERP</h1>
+          <p className="text-gray-600 mt-2">
             {isLogin ? 'Entre na sua conta' : 'Crie sua conta'}
           </p>
         </div>
 
+        {/* Email confirmation notice */}
+        {!isLogin && !error && (
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-800">
+              <strong>Importante:</strong> Após criar sua conta, você receberá um email de confirmação. 
+              Verifique sua caixa de entrada (incluindo spam) e clique no link para ativar sua conta.
+            </p>
+          </div>
+        )}
+
+        {/* Error message */}
         {error && (
-          <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-xs sm:text-sm text-red-800">{error}</p>
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-800">{error}</p>
           </div>
         )}
 
-        {success && (
-          <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-xs sm:text-sm text-green-800">{success}</p>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-6">
           {!isLogin && (
-            <>
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                  Nome do Negócio
-                </label>
-                <div className="relative">
-                  <Building2 className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
-                  <input
-                    type="text"
-                    name="businessName"
-                    value={formData.businessName}
-                    onChange={handleChange}
-                    required={!isLogin}
-                    className="w-full pl-8 sm:pl-12 pr-3 sm:pr-4 py-2 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
-                    placeholder="Ex: Loja ABC"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                  Ramo do Negócio
-                </label>
-                <div className="relative">
-                  <Briefcase className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5 pointer-events-none z-10" />
-                  <select
-                    name="businessSector"
-                    value={formData.businessSector}
-                    onChange={handleChange}
-                    required={!isLogin}
-                    className="w-full pl-8 sm:pl-12 pr-3 sm:pr-4 py-2 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base appearance-none bg-white"
-                  >
-                    {BUSINESS_SECTORS.map((sector) => (
-                      <option key={sector.value} value={sector.value}>
-                        {sector.label}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-            </>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Nome Completo
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                required={!isLogin}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                placeholder="Seu nome completo"
+              />
+            </div>
           )}
 
           <div>
-            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Email
             </label>
             <div className="relative">
-              <Mail className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full pl-8 sm:pl-12 pr-3 sm:pr-4 py-2 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+                className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 placeholder="seu@email.com"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Senha
             </label>
             <div className="relative">
-              <Lock className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type={showPassword ? 'text' : 'password'}
                 name="password"
@@ -209,26 +189,26 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                 onChange={handleChange}
                 required
                 minLength={6}
-                className="w-full pl-8 sm:pl-12 pr-8 sm:pr-12 py-2 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+                className="w-full pl-12 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 placeholder="Sua senha (mínimo 6 caracteres)"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
-                {showPassword ? <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <Eye className="w-4 h-4 sm:w-5 sm:h-5" />}
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
           </div>
 
           {!isLogin && (
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Confirmar Senha
               </label>
               <div className="relative">
-                <Lock className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   name="confirmPassword"
@@ -236,7 +216,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                   onChange={handleChange}
                   required={!isLogin}
                   minLength={6}
-                  className="w-full pl-8 sm:pl-12 pr-3 sm:pr-4 py-2 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+                  className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   placeholder="Confirme sua senha"
                 />
               </div>
@@ -246,27 +226,28 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center px-4 py-2 sm:py-3 text-white bg-blue-600 rounded-lg sm:rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm sm:text-base font-medium"
+            className="w-full flex items-center justify-center px-4 py-3 text-white bg-purple-600 rounded-xl hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? (
-              <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"></div>
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
             ) : (
               <>
-                <LogIn className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                <LogIn className="w-5 h-5 mr-2" />
                 {isLogin ? 'Entrar' : 'Criar Conta'}
               </>
             )}
           </button>
         </form>
 
-        <div className="mt-4 sm:mt-6 text-center">
+        {/* Toggle */}
+        <div className="mt-6 text-center">
           <button
             type="button"
             onClick={() => setIsLogin(!isLogin)}
-            className="text-blue-600 hover:text-blue-700 font-medium text-sm sm:text-base"
+            className="text-purple-600 hover:text-purple-700 font-medium"
           >
-            {isLogin
-              ? 'Não tem uma conta? Criar conta'
+            {isLogin 
+              ? 'Não tem uma conta? Criar conta' 
               : 'Já tem uma conta? Fazer login'
             }
           </button>

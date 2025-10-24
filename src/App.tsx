@@ -19,11 +19,9 @@ import { Ajuda } from './pages/Ajuda';
 import { RH } from './pages/RH';
 
 import { Configuracoes } from './pages/Configuracoes';
-import { FloatingAI } from './components/FloatingAI';
 
 const AppContent: React.FC = () => {
   const { user, loading } = useAuth();
-  const [, setRefresh] = React.useState(0);
 
   if (loading) {
     return (
@@ -37,7 +35,7 @@ const AppContent: React.FC = () => {
   }
 
   if (!user) {
-    return <LoginForm onLoginSuccess={() => setRefresh(prev => prev + 1)} />;
+    return <LoginForm onLoginSuccess={() => {}} />;
   }
 
   return (
@@ -59,7 +57,6 @@ const AppContent: React.FC = () => {
           <Route path="/comunidade" element={<Comunidade />} />
           <Route path="/ajuda" element={<Ajuda />} />
         </Routes>
-        <FloatingAI />
       </Layout>
     </Router>
   );

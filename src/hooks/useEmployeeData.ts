@@ -1,15 +1,21 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
-export interface Employee {
+interface Employee {
   id: string;
   name: string;
   email: string;
+  phone: string;
   position: string;
   department: string;
   salary: number;
-  status: 'active' | 'inactive';
-  created_at?: string;
+  hire_date: string;
+  status: 'active' | 'inactive' | 'terminated';
+  address: string;
+  birth_date: string;
+  document_number: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export const useEmployeeData = () => {
@@ -19,82 +25,70 @@ export const useEmployeeData = () => {
 
   const fetchEmployees = async () => {
     try {
-      setLoading(true);
+      if (!isSupabaseConfigured()) {
+        setEmployees([]);
+        return;
+      }
+      
       const { data, error } = await supabase
         .from('employees')
         .select('*')
         .order('created_at', { ascending: false });
-
+      
       if (error) throw error;
       setEmployees(data || []);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      console.error('Error fetching employees:', err);
+      setError(err instanceof Error ? err.message : 'Unknown error');
+      setEmployees([]);
+    }
+  };
+
+  const fetchAllData = async () => {
+    setLoading(true);
+    setError(null);
+    
+    if (!isSupabaseConfigured()) {
+      console.warn('Supabase não configurado - usando dados vazios');
+      setLoading(false);
+      return;
+    }
+    
+    try {
+      await fetchEmployees();
+    } catch (err) {
+      console.error('Error fetching employee data:', err);
+      setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
   };
 
-  const addEmployee = async (employeeData: Omit<Employee, 'id' | 'created_at'>) => {
-    try {
-      const { data, error } = await supabase
-        .from('employees')
-        .insert([employeeData])
-        .select()
-        .single();
-
-      if (error) throw error;
-      setEmployees(prev => [data, ...prev]);
-      return data;
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    }
-  };
-
-  const updateEmployee = async (id: string, employeeData: Partial<Employee>) => {
-    try {
-      const { data, error } = await supabase
-        .from('employees')
-        .update(employeeData)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      setEmployees(prev => prev.map(emp => emp.id === id ? data : emp));
-      return data;
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    }
-  };
-
-  const deleteEmployee = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('employees')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-      setEmployees(prev => prev.filter(emp => emp.id !== id));
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    }
-  };
-
   useEffect(() => {
-    fetchEmployees();
+    fetchAllData();
+  }, []);
+
+  // Real-time subscription
+  useEffect(() => {
+    if (!isSupabaseConfigured()) return;
+    
+    const employeesSubscription = supabase
+      .channel('employees_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'employees' }, () => {
+        fetchEmployees();
+      })
+      .subscribe();
+
+    return () => {
+      employeesSubscription.unsubscribe();
+    };
   }, []);
 
   return {
     employees,
     loading,
     error,
-    addEmployee,
-    updateEmployee,
-    deleteEmployee,
-    refetch: fetchEmployees,
+    refetch: fetchAllData,
+    setEmployees,
   };
 };

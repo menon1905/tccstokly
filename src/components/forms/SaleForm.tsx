@@ -1,6 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
-import { useLocalData } from '../../hooks/useSupabaseData';
+import { X, ShoppingCart, Save } from 'lucide-react';
+import { useCurrency } from '../../hooks/useCurrency';
+import { isSupabaseConfigured, supabase } from '../../lib/supabase';
+
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  stock: number;
+}
+
+interface Customer {
+  id: string;
+  name: string;
+  email: string;
+}
 
 interface SaleFormProps {
   isOpen: boolean;
@@ -9,221 +23,263 @@ interface SaleFormProps {
 }
 
 export const SaleForm: React.FC<SaleFormProps> = ({ isOpen, onClose, onSuccess }) => {
-  const { products, customers, addSale } = useLocalData();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { formatCurrency } = useCurrency();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [formData, setFormData] = useState({
     product_id: '',
     customer_id: '',
-    quantity: 1,
-    unit_price: 0,
-    total: 0,
-    status: 'completed',
-    sale_date: new Date().toISOString().split('T')[0]
+    quantity: '1'
   });
 
   useEffect(() => {
-    if (formData.product_id && products) {
-      const product = products.find(p => p.id === formData.product_id);
-      if (product) {
-        const unitPrice = product.price || 0;
-        const total = unitPrice * formData.quantity;
-        setFormData(prev => ({
-          ...prev,
-          unit_price: unitPrice,
-          total: total
-        }));
-      }
+    if (isOpen) {
+      fetchProducts();
+      fetchCustomers();
     }
-  }, [formData.product_id, formData.quantity, products]);
+  }, [isOpen]);
+
+  const fetchProducts = async () => {
+    if (!isSupabaseConfigured()) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('id, name, price, stock')
+        .gt('stock', 0)
+        .order('name');
+
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (error) {
+      console.error('Erro ao buscar produtos:', error);
+      setProducts([]);
+    }
+  };
+
+  const fetchCustomers = async () => {
+    if (!isSupabaseConfigured()) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('customers')
+        .select('id, name, email')
+        .eq('status', 'active')
+        .order('name');
+
+      if (error) throw error;
+      setCustomers(data || []);
+    } catch (error) {
+      console.error('Erro ao buscar clientes:', error);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
 
     try {
-      if (!formData.product_id || !formData.customer_id) {
-        throw new Error('Selecione um produto e um cliente');
+      if (!isSupabaseConfigured()) {
+        alert('Sistema não configurado. Entre em contato com o suporte.');
+        setLoading(false);
+        return;
       }
 
-      await addSale({
-        product_id: formData.product_id,
-        customer_id: formData.customer_id,
-        quantity: formData.quantity,
-        unit_price: formData.unit_price,
-        total: formData.total,
-        status: formData.status,
-        created_at: new Date(formData.sale_date).toISOString()
-      });
+      // Check authentication
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        alert('Você precisa estar logado para registrar vendas.');
+        setLoading(false);
+        return;
+      }
 
+      const selectedProduct = products.find(p => p.id === formData.product_id);
+      if (!selectedProduct) throw new Error('Produto não encontrado');
+
+      const quantity = parseInt(formData.quantity);
+      if (quantity > selectedProduct.stock) {
+        alert('Quantidade maior que o estoque disponível');
+        setLoading(false);
+        return;
+      }
+
+      const { error } = await supabase
+        .from('sales')
+        .insert([{
+          product_id: formData.product_id,
+          customer_id: formData.customer_id,
+          quantity: quantity,
+          unit_price: selectedProduct.price,
+          status: 'completed',
+          user_id: user.id
+        }]);
+
+      if (error) throw error;
+
+      // Atualizar estoque do produto
+      const { error: stockError } = await supabase
+        .from('products')
+        .update({ stock: selectedProduct.stock - quantity })
+        .eq('id', formData.product_id);
+
+      if (stockError) {
+        console.error('Erro ao atualizar estoque:', stockError);
+        // Continua mesmo se não conseguir atualizar o estoque
+      }
+
+      // Reset form
       setFormData({
         product_id: '',
         customer_id: '',
-        quantity: 1,
-        unit_price: 0,
-        total: 0,
-        status: 'completed',
-        sale_date: new Date().toISOString().split('T')[0]
+        quantity: '1'
       });
 
       onSuccess();
       onClose();
-    } catch (err) {
-      console.error('Error creating sale:', err);
-      setError(err instanceof Error ? err.message : 'Erro ao criar venda');
+    } catch (error) {
+      console.error('Erro ao registrar venda:', error);
+      alert('Erro ao registrar venda. Verifique sua conexão e tente novamente.');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
+  };
+
+  const selectedProduct = products.find(p => p.id === formData.product_id);
+  const total = selectedProduct ? selectedProduct.price * parseInt(formData.quantity || '1') : 0;
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Nova Venda</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-              <X className="w-6 h-6" />
-            </button>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl p-8 w-full max-w-lg">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+              <ShoppingCart className="w-5 h-5 text-green-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900">Nova Venda</h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Cliente *
+            </label>
+            <select
+              name="customer_id"
+              value={formData.customer_id}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            >
+              <option value="">Selecione um cliente</option>
+              {customers.map(customer => (
+                <option key={customer.id} value={customer.id}>
+                  {customer.name} - {customer.email}
+                </option>
+              ))}
+            </select>
+            {customers.length === 0 && (
+              <p className="text-sm text-gray-500 mt-1">
+                Nenhum cliente encontrado. Cadastre clientes primeiro.
+              </p>
+            )}
           </div>
 
-          {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-800">{error}</p>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Produto *
+            </label>
+            <select
+              name="product_id"
+              value={formData.product_id}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            >
+              <option value="">Selecione um produto</option>
+              {products.map(product => (
+                <option key={product.id} value={product.id}>
+                  {product.name} - {formatCurrency(product.price)} (Estoque: {product.stock})
+                </option>
+              ))}
+            </select>
+            {products.length === 0 && (
+              <p className="text-sm text-gray-500 mt-1">
+                Nenhum produto com estoque encontrado. Cadastre produtos primeiro.
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Quantidade *
+            </label>
+            <input
+              type="number"
+              name="quantity"
+              value={formData.quantity}
+              onChange={handleChange}
+              required
+              min="1"
+              max={selectedProduct?.stock || 999}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            />
+            {selectedProduct && (
+              <p className="text-sm text-gray-500 mt-1">
+                Estoque disponível: {selectedProduct.stock} unidades
+              </p>
+            )}
+          </div>
+
+          {total > 0 && (
+            <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-green-800">Total da Venda:</span>
+                <span className="text-lg font-bold text-green-900">
+                  {formatCurrency(total)}
+                </span>
+              </div>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Cliente *
-              </label>
-              <select
-                value={formData.customer_id}
-                onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                required
-              >
-                <option value="">Selecione um cliente</option>
-                {customers?.map((customer) => (
-                  <option key={customer.id} value={customer.id}>
-                    {customer.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Produto *
-              </label>
-              <select
-                value={formData.product_id}
-                onChange={(e) => setFormData({ ...formData, product_id: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                required
-              >
-                <option value="">Selecione um produto</option>
-                {products?.map((product) => (
-                  <option key={product.id} value={product.id}>
-                    {product.name} - R$ {product.price?.toFixed(2)} (Estoque: {product.stock})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Data da Venda *
-              </label>
-              <input
-                type="date"
-                value={formData.sale_date}
-                onChange={(e) => setFormData({ ...formData, sale_date: e.target.value })}
-                max={new Date().toISOString().split('T')[0]}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                required
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Quantidade *
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  value={formData.quantity}
-                  onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 1 })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Preço Unitário
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.unit_price}
-                  readOnly
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Total
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                value={formData.total}
-                readOnly
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 font-bold text-lg"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Status
-              </label>
-              <select
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="completed">Concluída</option>
-                <option value="pending">Pendente</option>
-                <option value="cancelled">Cancelada</option>
-              </select>
-            </div>
-
-            <div className="flex justify-end gap-3 pt-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
-                disabled={loading}
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
-                disabled={loading}
-              >
-                {loading ? 'Salvando...' : 'Registrar Venda'}
-              </button>
-            </div>
-          </form>
-        </div>
+          <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-6 py-3 text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={loading || !formData.product_id || !formData.customer_id}
+              className="flex items-center px-6 py-3 text-white bg-green-600 rounded-xl hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {loading ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              ) : (
+                <Save className="w-4 h-4 mr-2" />
+              )}
+              {loading ? 'Salvando...' : 'Registrar Venda'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

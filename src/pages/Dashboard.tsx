@@ -1,94 +1,28 @@
-import React, { useMemo, useState } from 'react';
-import {
-  Package,
-  TrendingUp,
-  DollarSign,
-  Users,
+import React from 'react';
+import { 
+  Package, 
+  TrendingUp, 
+  DollarSign, 
+  Users, 
   Bot,
   Sparkles,
   Target,
-  Activity,
-  AlertTriangle,
-  Star,
-  Bell
+  Activity
 } from 'lucide-react';
 import { MetricCard } from '../components/MetricCard';
-import { useLocalData } from '../hooks/useSupabaseData';
+import { useSupabaseData } from '../hooks/useSupabaseData';
 import { useCurrency } from '../hooks/useCurrency';
 import { useSalesPrediction } from '../hooks/useSalesPrediction';
-import { useInventoryOptimization } from '../hooks/useInventoryOptimization';
-import { useFinancialInsights } from '../hooks/useFinancialInsights';
-import { Line, Bar } from 'react-chartjs-2';
-import { analyzeProductTrends } from '../lib/aiEngine';
+import { Line } from 'react-chartjs-2';
 
 export const Dashboard: React.FC = () => {
-  const { products, sales, customers, loading, error } = useLocalData();
+  const { products, sales, customers, loading, error } = useSupabaseData();
   const { formatCurrency } = useCurrency();
   const { predictionData } = useSalesPrediction();
-  const { data: inventoryData } = useInventoryOptimization();
-  const { data: financialData } = useFinancialInsights();
-  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
 
   const totalProducts = products?.length || 0;
   const totalRevenue = sales?.reduce((sum, sale) => sum + (sale.total || 0), 0) || 0;
   const totalCustomers = customers?.length || 0;
-
-  // Top 5 Produtos (filtered)
-  const productAnalysis = useMemo(() => {
-    if (!sales || !products || sales.length === 0 || products.length === 0) {
-      return { topProducts: [] };
-    }
-    const filteredSales = selectedProducts.length > 0
-      ? sales.filter(s => selectedProducts.includes(s.product_id))
-      : sales;
-    return analyzeProductTrends(filteredSales, products, 30);
-  }, [sales, products, selectedProducts]);
-
-  const topProductsChartData = useMemo(() => {
-    if (productAnalysis.topProducts.length === 0) {
-      return { labels: [], datasets: [] };
-    }
-    return {
-      labels: productAnalysis.topProducts.map(item => item.product.name),
-      datasets: [
-        {
-          label: 'Receita (R$)',
-          data: productAnalysis.topProducts.map(item => item.revenue),
-          backgroundColor: 'rgba(139, 92, 246, 0.8)',
-          borderColor: 'rgba(139, 92, 246, 1)',
-          borderWidth: 1
-        }
-      ]
-    };
-  }, [productAnalysis]);
-
-  // Insights recentes
-  const recentAlerts = useMemo(() => {
-    const alerts = [];
-
-    if (inventoryData && inventoryData.products_at_risk > 0) {
-      alerts.push({
-        type: 'warning',
-        message: `${inventoryData.products_at_risk} produtos com estoque baixo`
-      });
-    }
-
-    if (financialData && financialData.health_score < 70) {
-      alerts.push({
-        type: 'danger',
-        message: 'Saúde financeira precisa de atenção'
-      });
-    }
-
-    if (predictionData && predictionData.model_info.accuracy_percentage > 90) {
-      alerts.push({
-        type: 'success',
-        message: 'IA operando com alta precisão'
-      });
-    }
-
-    return alerts.slice(0, 3);
-  }, [inventoryData, financialData, predictionData]);
 
   // IA Predictions
   const aiInsights = {
@@ -122,7 +56,7 @@ export const Dashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="p-4 lg:p-8">
+      <div className="p-8">
         <div className="animate-pulse space-y-8">
           <div className="h-8 bg-gray-200 rounded w-48"></div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -136,15 +70,15 @@ export const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="p-3 sm:p-4 lg:p-6 xl:p-8 space-y-4 sm:space-y-6 lg:space-y-8">
+    <div className="p-8 space-y-8">
       {/* Header Simples */}
       <div>
-        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Dashboard</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
         <p className="text-gray-600 mt-1">Visão geral do seu negócio</p>
       </div>
 
       {/* Métricas Principais - Simplificadas */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <MetricCard
           title="Produtos"
           value={totalProducts.toString()}
@@ -175,269 +109,74 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Performance de Vendas */}
-        <div className="bg-white rounded-xl border border-gray-100 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                <TrendingUp className="w-5 h-5 mr-2 text-purple-600" />
-                Performance de Vendas
-              </h3>
-              <p className="text-sm text-gray-600 mt-1">Histórico vs Previsões</p>
-            </div>
-          </div>
-          <div className="h-64">
-            <Line
-              data={performanceData}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: {
-                    display: true,
-                    position: 'top' as const,
-                  },
-                },
-                scales: {
-                  y: {
-                    beginAtZero: true,
-                    grid: {
-                      color: 'rgba(0, 0, 0, 0.05)',
-                    },
-                  },
-                  x: {
-                    grid: {
-                      display: false,
-                    },
-                  },
-                },
-              }}
-            />
+      {/* Gráfico Principal - Limpo */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-8">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h3 className="text-xl font-semibold text-gray-900">Performance 
+            </h3>
+            <p className="text-gray-600 mt-1">Vendas reais vs previsões inteligentes</p>
           </div>
         </div>
-
-        {/* Top 5 Produtos */}
-        <div className="bg-white rounded-xl border border-gray-100 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                <Star className="w-5 h-5 mr-2 text-yellow-500" />
-                Top 5 Produtos
-              </h3>
-              <p className="text-sm text-gray-600 mt-1">Últimos 30 dias</p>
-            </div>
-          </div>
-
-          {/* Product Filter */}
-          <div className="mb-4">
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setSelectedProducts([])}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  selectedProducts.length === 0
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                Todos
-              </button>
-              {products?.slice(0, 8).map((product) => (
-                <button
-                  key={product.id}
-                  onClick={() => {
-                    setSelectedProducts(prev =>
-                      prev.includes(product.id)
-                        ? prev.filter(id => id !== product.id)
-                        : [...prev, product.id]
-                    );
-                  }}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                    selectedProducts.includes(product.id)
-                      ? 'bg-purple-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {product.name}
-                </button>
-              ))}
-            </div>
-          </div>
-          {productAnalysis.topProducts.length > 0 ? (
-            <div className="h-64">
-              <Bar
-                data={topProductsChartData}
-                options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: {
-                      display: false,
-                    },
-                  },
-                  scales: {
-                    y: {
-                      beginAtZero: true,
-                      grid: {
-                        color: 'rgba(0, 0, 0, 0.05)',
-                      },
-                    },
-                    x: {
-                      grid: {
-                        display: false,
-                      },
-                    },
-                  },
-                }}
-              />
-            </div>
-          ) : (
-            <div className="h-64 flex items-center justify-center">
-              <div className="text-center">
-                <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500">Cadastre produtos e registre vendas</p>
-              </div>
-            </div>
-          )}
-        </div>
+        <Line 
+          data={performanceData} 
+          options={{
+            responsive: true,
+            plugins: {
+              legend: {
+                display: false,
+              },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: {
+                  color: 'rgba(0, 0, 0, 0.05)',
+                },
+              },
+              x: {
+                grid: {
+                  display: false,
+                },
+              },
+            },
+          }} 
+        />
       </div>
 
-      {/* Recomendações IA */}
-      <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-3xl p-1">
-        <div className="bg-white rounded-[20px] p-6 lg:p-8">
-          <div className="flex items-start justify-between mb-6">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
-                <Bot className="w-7 h-7 text-white" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-gray-900">Recomendações IA</h3>
-                <p className="text-sm text-gray-600">Insights baseados em análise inteligente</p>
-              </div>
-            </div>
-            <Activity className="w-6 h-6 text-purple-600 animate-pulse" />
+      {/* Insights IA - Simplificados */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border border-green-100 p-6">
+          <div className="flex items-center space-x-2 mb-4">
+            <TrendingUp className="w-5 h-5 text-green-600" />
+            <span className="text-sm font-medium text-green-600">Previsão</span>
           </div>
+          <p className="text-2xl font-bold text-gray-900 mb-1">
+            {formatCurrency(aiInsights.nextWeekRevenue)}
+          </p>
+          <p className="text-sm text-gray-600">Próxima semana</p>
+        </div>
 
-          {/* Alertas/Insights Recentes */}
-          <div className="mb-6">
-            <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
-              <Bell className="w-4 h-4 mr-2" />
-              Alertas e Insights Recentes
-            </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {recentAlerts.length > 0 ? (
-                recentAlerts.map((alert, index) => (
-                  <div
-                    key={index}
-                    className={`p-3 rounded-lg border ${
-                      alert.type === 'danger'
-                        ? 'bg-red-50 border-red-200'
-                        : alert.type === 'warning'
-                        ? 'bg-yellow-50 border-yellow-200'
-                        : 'bg-green-50 border-green-200'
-                    }`}
-                  >
-                    <div className="flex items-start space-x-2">
-                      <AlertTriangle
-                        className={`w-4 h-4 flex-shrink-0 mt-0.5 ${
-                          alert.type === 'danger'
-                            ? 'text-red-600'
-                            : alert.type === 'warning'
-                            ? 'text-yellow-600'
-                            : 'text-green-600'
-                        }`}
-                      />
-                      <p className="text-xs text-gray-900">{alert.message}</p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="col-span-3 text-center py-4">
-                  <Bot className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                  <p className="text-xs text-gray-500">Nenhum alerta no momento</p>
-                </div>
-              )}
-            </div>
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-100 p-6">
+          <div className="flex items-center space-x-2 mb-4">
+            <Target className="w-5 h-5 text-blue-600" />
+            <span className="text-sm font-medium text-blue-600">Meta IA</span>
           </div>
+          <p className="text-2xl font-bold text-gray-900 mb-1">
+            {formatCurrency(Math.round(totalRevenue * 1.35))}
+          </p>
+          <p className="text-sm text-gray-600">Recomendada</p>
+        </div>
 
-          {/* Recomendações Principais */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {inventoryData && inventoryData.recommendations.length > 0 ? (
-              inventoryData.recommendations.slice(0, 3).map((rec, index) => (
-                <div key={index} className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl border border-orange-200 p-4">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Package className="w-5 h-5 text-orange-600" />
-                    <span className="text-xs font-semibold text-orange-600">ESTOQUE</span>
-                  </div>
-                  <p className="text-sm font-bold text-gray-900 mb-1">
-                    {rec.product_name}
-                  </p>
-                  <p className="text-xs text-gray-600">{rec.action}</p>
-                </div>
-              ))
-            ) : financialData && financialData.insights.length > 0 ? (
-              financialData.insights.slice(0, 3).map((insight, index) => (
-                <div key={index} className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200 p-4">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <DollarSign className="w-5 h-5 text-blue-600" />
-                    <span className="text-xs font-semibold text-blue-600">FINANCEIRO</span>
-                  </div>
-                  <p className="text-sm font-bold text-gray-900 mb-1">
-                    {insight.title}
-                  </p>
-                  <p className="text-xs text-gray-600">{insight.description}</p>
-                </div>
-              ))
-            ) : (
-              <>
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 p-4">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <TrendingUp className="w-5 h-5 text-green-600" />
-                    <span className="text-xs font-semibold text-green-600">PREVISÃO</span>
-                  </div>
-                  <p className="text-2xl font-bold text-gray-900 mb-1">
-                    {formatCurrency(aiInsights.nextWeekRevenue)}
-                  </p>
-                  <p className="text-xs text-gray-600">Receita próxima semana</p>
-                </div>
-
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200 p-4">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Target className="w-5 h-5 text-blue-600" />
-                    <span className="text-xs font-semibold text-blue-600">META IA</span>
-                  </div>
-                  <p className="text-2xl font-bold text-gray-900 mb-1">
-                    {formatCurrency(Math.round(totalRevenue * 1.35))}
-                  </p>
-                  <p className="text-xs text-gray-600">Crescimento sugerido</p>
-                </div>
-
-                <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-200 p-4">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Sparkles className="w-5 h-5 text-purple-600" />
-                    <span className="text-xs font-semibold text-purple-600">PRECISÃO</span>
-                  </div>
-                  <p className="text-2xl font-bold text-gray-900 mb-1">
-                    {aiInsights.efficiency}%
-                  </p>
-                  <p className="text-xs text-gray-600">Modelo de IA</p>
-                </div>
-              </>
-            )}
+        <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-2xl border border-orange-100 p-6">
+          <div className="flex items-center space-x-2 mb-4">
+            <Sparkles className="w-5 h-5 text-orange-600" />
+            <span className="text-sm font-medium text-orange-600">Otimização</span>
           </div>
-
-          <div className="mt-6 pt-6 border-t border-gray-100">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm text-gray-600">Sistema de IA ativo e monitorando</span>
-              </div>
-              <button className="text-sm font-semibold text-purple-600 hover:text-purple-700 flex items-center space-x-1">
-                <span>Ver todas as recomendações</span>
-                <Bot className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
+          <p className="text-2xl font-bold text-gray-900 mb-1">
+            3
+          </p>
+          <p className="text-sm text-gray-600">Sugestões ativas</p>
         </div>
       </div>
     </div>

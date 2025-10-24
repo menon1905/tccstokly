@@ -1,13 +1,8 @@
 import React from 'react';
-import { Search, User, LogOut, Menu, Bot } from 'lucide-react';
+import { Search, User, LogOut } from 'lucide-react';
 import { useAuth } from './AuthProvider';
 
-interface HeaderProps {
-  onMenuClick: () => void;
-  onAIPanelClick: () => void;
-}
-
-export const Header: React.FC<HeaderProps> = ({ onMenuClick, onAIPanelClick }) => {
+export const Header: React.FC = () => {
   const { user, signOut } = useAuth();
 
   const handleSignOut = async () => {
@@ -19,20 +14,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, onAIPanelClick }) =
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4">
       <div className="flex items-center justify-between">
-        {/* Mobile menu button */}
-        <button
-          onClick={onMenuClick}
-          className="lg:hidden p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
-        >
-          <Menu className="w-5 h-5" />
-        </button>
-        
-        {/* Logo for mobile */}
-        <div className="lg:hidden flex items-center">
-          <span className="text-lg font-bold text-purple-600">STOKLY</span>
-        </div>
-        
-        <div className="flex-1 max-w-md mx-4">
+        <div className="flex-1 max-w-md">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
@@ -44,14 +26,6 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, onAIPanelClick }) =
         </div>
         
         <div className="flex items-center space-x-3">
-          {/* AI Panel toggle for mobile */}
-          <button
-            onClick={onAIPanelClick}
-            className="xl:hidden p-2 text-gray-400 hover:text-purple-600 rounded-lg hover:bg-purple-50 transition-colors"
-          >
-            <Bot className="w-5 h-5" />
-          </button>
-          
           <div className="text-right">
             <p className="text-sm font-medium text-gray-900">
               {user?.user_metadata?.name || user?.email || 'Usuário'}

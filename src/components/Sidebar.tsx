@@ -1,6 +1,5 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { X } from 'lucide-react';
 import {
   BarChart3,
   Bot,
@@ -16,10 +15,6 @@ import {
   MessageSquare,
   Sparkles,
 } from 'lucide-react';
-
-interface SidebarProps {
-  onClose?: () => void;
-}
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: BarChart3 },
@@ -40,20 +35,10 @@ const support = [
   { name: 'Ajuda & Suporte', href: '/ajuda', icon: HelpCircle },
 ];
 
-export const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
+export const Sidebar: React.FC = () => {
   return (
     <div className="flex flex-col w-64 bg-white border-r border-gray-200 h-screen">
       <div className="flex items-center px-6 py-4 border-b border-gray-200">
-        {/* Close button for mobile */}
-        {onClose && (
-          <button
-            onClick={onClose}
-            className="lg:hidden p-1 text-gray-400 hover:text-gray-600 rounded mr-3"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        )}
-        
         <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center mr-3">
           <span className="text-white font-bold text-sm">S</span>
         </div>
@@ -71,7 +56,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
           <NavLink
             key={item.name}
             to={item.href}
-            onClick={onClose}
             className={({ isActive }) =>
               `group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                 isActive
@@ -102,7 +86,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
               <NavLink
                 key={item.name}
                 to={item.href}
-                onClick={onClose}
                 className={({ isActive }) =>
                   `group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                     isActive

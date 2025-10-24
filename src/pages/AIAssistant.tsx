@@ -10,7 +10,7 @@ import {
   Users,
   Sparkles
 } from 'lucide-react';
-import { useLocalData } from '../hooks/useSupabaseData';
+import { useSupabaseData } from '../hooks/useSupabaseData';
 
 interface Message {
   id: string;
@@ -20,7 +20,7 @@ interface Message {
 }
 
 export const AIAssistant: React.FC = () => {
-  const { products, sales, customers, loading } = useLocalData();
+  const { products, sales, customers, loading } = useSupabaseData();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [hasInitialized, setHasInitialized] = useState(false);
@@ -91,7 +91,7 @@ export const AIAssistant: React.FC = () => {
     },
   ];
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = () => {
     if (!inputValue.trim()) return;
 
     const userMessage: Message = {
@@ -102,65 +102,28 @@ export const AIAssistant: React.FC = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
-    const currentInput = inputValue;
-    setInputValue('');
 
-    const thinkingMessage: Message = {
-      id: 'thinking',
-      type: 'ai',
-      content: 'Pensando...',
-      timestamp: new Date(),
-    };
-    setMessages(prev => [...prev, thinkingMessage]);
-
-    try {
-      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`;
-      const headers = {
-        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        'Content-Type': 'application/json',
-      };
-
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          message: currentInput,
-          context: {
-            products,
-            sales,
-            customers,
-          },
-        }),
-      });
-
-      const data = await response.json();
-
-      setMessages(prev => prev.filter(m => m.id !== 'thinking'));
-
+    // Simulate AI response
+    setTimeout(() => {
+      const aiResponse = generateAIResponse(inputValue);
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'ai',
-        content: data.response || 'Desculpe, ocorreu um erro ao processar sua mensagem.',
+        content: aiResponse,
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, aiMessage]);
-    } catch (error) {
-      setMessages(prev => prev.filter(m => m.id !== 'thinking'));
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'ai',
-        content: 'Desculpe, houve um erro ao processar sua mensagem. Tente novamente.',
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, errorMessage]);
-    }
+    }, 1000);
+
+    setInputValue('');
   };
 
   const handleQuickAction = (prompt: string) => {
     setInputValue(prompt);
+    setTimeout(() => handleSendMessage(), 100);
   };
 
-  const generateAIResponse_OLD_UNUSED = (userInput: string): string => {
+  const generateAIResponse = (userInput: string): string => {
     const input = userInput.toLowerCase();
     
     // Análise de vendas

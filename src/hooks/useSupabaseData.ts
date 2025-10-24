@@ -1,265 +1,181 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
-import { Product, Sale, Customer, Purchase } from '../types';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
-export const useLocalData = () => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [sales, setSales] = useState<Sale[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [purchases, setPurchases] = useState<Purchase[]>([]);
+export const useSupabaseData = () => {
+  const [products, setProducts] = useState<any[]>([]);
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [sales, setSales] = useState<any[]>([]);
+  const [purchases, setPurchases] = useState<any[]>([]);
+  const [aiInsights, setAiInsights] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchData = async () => {
+  const fetchProducts = async () => {
     try {
-      setLoading(true);
+      if (!isSupabaseConfigured()) return;
+      
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (err) {
+      console.error('Error fetching products:', err);
+      setProducts([]);
+    }
+  };
 
-      const [productsRes, salesRes, customersRes, purchasesRes] = await Promise.all([
-        supabase.from('products').select('*'),
-        supabase.from('sales').select('*'),
-        supabase.from('customers').select('*'),
-        supabase.from('purchases').select('*'),
+  const fetchCustomers = async () => {
+    try {
+      if (!isSupabaseConfigured()) return;
+      
+      const { data, error } = await supabase
+        .from('customers')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setCustomers(data || []);
+    } catch (err) {
+      console.error('Error fetching customers:', err);
+      setCustomers([]);
+    }
+  };
+
+  const fetchSales = async () => {
+    try {
+      if (!isSupabaseConfigured()) return;
+      
+      const { data, error } = await supabase
+        .from('sales')
+        .select(`
+          *,
+          products (name, sku),
+          customers (name, email)
+        `)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setSales(data || []);
+    } catch (err) {
+      console.error('Error fetching sales:', err);
+      setSales([]);
+    }
+  };
+
+  const fetchPurchases = async () => {
+    try {
+      if (!isSupabaseConfigured()) return;
+      
+      const { data, error } = await supabase
+        .from('purchases')
+        .select(`
+          *,
+          products (name, sku)
+        `)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setPurchases(data || []);
+    } catch (err) {
+      console.error('Error fetching purchases:', err);
+      setPurchases([]);
+    }
+  };
+
+  const fetchAIInsights = async () => {
+    try {
+      if (!isSupabaseConfigured()) return;
+      
+      const { data, error } = await supabase
+        .from('ai_insights')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(10);
+      
+      if (error) throw error;
+      setAiInsights(data || []);
+    } catch (err) {
+      console.error('Error fetching AI insights:', err);
+      setAiInsights([]);
+    }
+  };
+
+  const fetchAllData = async () => {
+    setLoading(true);
+    
+    if (!isSupabaseConfigured()) {
+      console.warn('Supabase não configurado - usando dados vazios');
+      setLoading(false);
+      return;
+    }
+    
+    try {
+      await Promise.all([
+        fetchProducts(),
+        fetchCustomers(),
+        fetchSales(),
+        fetchPurchases(),
+        fetchAIInsights()
       ]);
-
-      if (productsRes.error) throw productsRes.error;
-      if (salesRes.error) throw salesRes.error;
-      if (customersRes.error) throw customersRes.error;
-      if (purchasesRes.error) throw purchasesRes.error;
-
-      setProducts(productsRes.data || []);
-      setSales(salesRes.data || []);
-      setCustomers(customersRes.data || []);
-      setPurchases(purchasesRes.data || []);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      console.error('Error fetching data:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const addProduct = async (productData: Omit<Product, 'id' | 'created_at'>) => {
-    try {
-      const { data, error } = await supabase
-        .from('products')
-        .insert([productData])
-        .select()
-        .single();
-
-      if (error) throw error;
-      setProducts(prev => [data, ...prev]);
-      return data;
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    }
-  };
-
-  const updateProduct = async (id: string, productData: Partial<Product>) => {
-    try {
-      const { data, error } = await supabase
-        .from('products')
-        .update(productData)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      setProducts(prev => prev.map(p => p.id === id ? data : p));
-      return data;
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    }
-  };
-
-  const deleteProduct = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('products')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-      setProducts(prev => prev.filter(p => p.id !== id));
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    }
-  };
-
-  const addSale = async (saleData: Omit<Sale, 'id' | 'created_at'>) => {
-    try {
-      const { data, error } = await supabase
-        .from('sales')
-        .insert([saleData])
-        .select()
-        .single();
-
-      if (error) throw error;
-      setSales(prev => [data, ...prev]);
-      return data;
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    }
-  };
-
-  const updateSale = async (id: string, saleData: Partial<Sale>) => {
-    try {
-      const { data, error } = await supabase
-        .from('sales')
-        .update(saleData)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      setSales(prev => prev.map(s => s.id === id ? data : s));
-      return data;
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    }
-  };
-
-  const deleteSale = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('sales')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-      setSales(prev => prev.filter(s => s.id !== id));
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    }
-  };
-
-  const addCustomer = async (customerData: Omit<Customer, 'id' | 'created_at'>) => {
-    try {
-      const { data, error } = await supabase
-        .from('customers')
-        .insert([customerData])
-        .select()
-        .single();
-
-      if (error) throw error;
-      setCustomers(prev => [data, ...prev]);
-      return data;
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    }
-  };
-
-  const updateCustomer = async (id: string, customerData: Partial<Customer>) => {
-    try {
-      const { data, error } = await supabase
-        .from('customers')
-        .update(customerData)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      setCustomers(prev => prev.map(c => c.id === id ? data : c));
-      return data;
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    }
-  };
-
-  const deleteCustomer = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('customers')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-      setCustomers(prev => prev.filter(c => c.id !== id));
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    }
-  };
-
-  const addPurchase = async (purchaseData: Omit<Purchase, 'id' | 'created_at'>) => {
-    try {
-      const { data, error } = await supabase
-        .from('purchases')
-        .insert([purchaseData])
-        .select()
-        .single();
-
-      if (error) throw error;
-      setPurchases(prev => [data, ...prev]);
-      return data;
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    }
-  };
-
-  const updatePurchase = async (id: string, purchaseData: Partial<Purchase>) => {
-    try {
-      const { data, error } = await supabase
-        .from('purchases')
-        .update(purchaseData)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      setPurchases(prev => prev.map(p => p.id === id ? data : p));
-      return data;
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    }
-  };
-
-  const deletePurchase = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('purchases')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-      setPurchases(prev => prev.filter(p => p.id !== id));
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    }
-  };
-
   useEffect(() => {
-    fetchData();
+    fetchAllData();
+  }, []);
+
+  // Real-time subscriptions
+  useEffect(() => {
+    if (!isSupabaseConfigured()) return;
+    
+    const productsSubscription = supabase
+      .channel('products_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, () => {
+        fetchProducts();
+      })
+      .subscribe();
+
+    const salesSubscription = supabase
+      .channel('sales_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'sales' }, () => {
+        fetchSales();
+      })
+      .subscribe();
+
+    const insightsSubscription = supabase
+      .channel('ai_insights_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'ai_insights' }, () => {
+        fetchAIInsights();
+      })
+      .subscribe();
+
+    return () => {
+      productsSubscription.unsubscribe();
+      salesSubscription.unsubscribe();
+      insightsSubscription.unsubscribe();
+    };
   }, []);
 
   return {
     products,
-    sales,
     customers,
+    sales,
     purchases,
+    aiInsights,
     loading,
     error,
-    addProduct,
-    updateProduct,
-    deleteProduct,
-    addSale,
-    updateSale,
-    deleteSale,
-    addCustomer,
-    updateCustomer,
-    deleteCustomer,
-    addPurchase,
-    updatePurchase,
-    deletePurchase,
-    refetch: fetchData,
+    refetch: fetchAllData,
+    setProducts,
+    setCustomers,
+    setSales,
+    setPurchases,
+    setAiInsights,
   };
 };

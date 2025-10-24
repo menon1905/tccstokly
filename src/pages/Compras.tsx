@@ -16,12 +16,12 @@ import {
   XCircle
 } from 'lucide-react';
 import { MetricCard } from '../components/MetricCard';
-import { useLocalData } from '../hooks/useSupabaseData';
+import { useSupabaseData } from '../hooks/useSupabaseData';
 import { useCurrency } from '../hooks/useCurrency';
 import { PurchaseForm } from '../components/forms/PurchaseForm';
 
 export const Compras: React.FC = () => {
-  const { purchases, loading, refetch } = useLocalData();
+  const { purchases, loading, refetch } = useSupabaseData();
   const { formatCurrency } = useCurrency();
   const [searchTerm, setSearchTerm] = useState('');
   const [showPurchaseForm, setShowPurchaseForm] = useState(false);
