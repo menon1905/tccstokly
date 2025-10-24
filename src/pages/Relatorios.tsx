@@ -15,6 +15,7 @@ import {
 import { useSupabaseData } from '../hooks/useSupabaseData';
 import { useCurrency } from '../hooks/useCurrency';
 import { Bar, Line, Doughnut } from 'react-chartjs-2';
+import { exportFinancialReportToPDF, exportSalesToPDF, exportProductsToPDF, exportCustomersToPDF } from '../utils/pdfExport';
 
 export const Relatorios: React.FC = () => {
   const { products, sales, customers, purchases, loading } = useSupabaseData();
@@ -299,7 +300,20 @@ export const Relatorios: React.FC = () => {
             <Filter className="w-4 h-4 mr-2" />
             Filtros Avançados
           </button>
-          <button className="flex items-center px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors">
+          <button
+            onClick={() => {
+              if (selectedReport === 'sales') {
+                exportSalesToPDF(sales || []);
+              } else if (selectedReport === 'inventory') {
+                exportProductsToPDF(products || []);
+              } else if (selectedReport === 'customers') {
+                exportCustomersToPDF(customers || []);
+              } else if (selectedReport === 'financial') {
+                exportFinancialReportToPDF({ sales: sales || [], purchases: purchases || [] });
+              }
+            }}
+            className="flex items-center px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors"
+          >
             <Download className="w-4 h-4 mr-2" />
             Exportar PDF
           </button>
@@ -354,7 +368,20 @@ export const Relatorios: React.FC = () => {
                   <Eye className="w-4 h-4 mr-2" />
                   Visualizar
                 </button>
-                <button className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+                <button
+                  onClick={() => {
+                    if (selectedReport === 'sales') {
+                      exportSalesToPDF(sales || []);
+                    } else if (selectedReport === 'inventory') {
+                      exportProductsToPDF(products || []);
+                    } else if (selectedReport === 'customers') {
+                      exportCustomersToPDF(customers || []);
+                    } else if (selectedReport === 'financial') {
+                      exportFinancialReportToPDF({ sales: sales || [], purchases: purchases || [] });
+                    }
+                  }}
+                  className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                >
                   <Download className="w-4 h-4 mr-2" />
                   Download
                 </button>

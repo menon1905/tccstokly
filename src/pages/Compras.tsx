@@ -22,6 +22,7 @@ import { useSupabaseData } from '../hooks/useSupabaseData';
 import { useCurrency } from '../hooks/useCurrency';
 import { PurchaseForm } from '../components/forms/PurchaseForm';
 import { supabase } from '../lib/supabase';
+import { exportPurchasesToPDF } from '../utils/pdfExport';
 
 export const Compras: React.FC = () => {
   const { purchases, loading, refetch } = useSupabaseData();
@@ -136,9 +137,12 @@ export const Compras: React.FC = () => {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Compras</h1>
         <div className="flex items-center space-x-3">
-          <button className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+          <button
+            onClick={() => exportPurchasesToPDF(purchases || [])}
+            className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
             <Download className="w-4 h-4 mr-2" />
-            Exportar Compras
+            Exportar PDF
           </button>
           <button 
             onClick={() => setShowPurchaseForm(true)}

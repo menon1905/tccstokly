@@ -17,6 +17,7 @@ import { useSupabaseData } from '../hooks/useSupabaseData';
 import { ProductForm } from '../components/forms/ProductForm';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { useCurrency } from '../hooks/useCurrency';
+import { exportProductsToPDF } from '../utils/pdfExport';
 
 export const Estoque: React.FC = () => {
   const { products, loading, error, refetch } = useSupabaseData();
@@ -104,13 +105,22 @@ export const Estoque: React.FC = () => {
           <h1 className="text-3xl font-bold text-gray-900">Estoque</h1>
           <p className="text-gray-600 mt-1">Controle inteligente de inventário</p>
         </div>
-        <button 
-          onClick={() => setShowProductForm(true)}
-          className="flex items-center px-6 py-2 text-white bg-purple-600 rounded-xl hover:bg-purple-700 transition-colors"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Adicionar Produto
-        </button>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={() => exportProductsToPDF(products || [])}
+            className="flex items-center px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
+          >
+            <DollarSign className="w-4 h-4 mr-2" />
+            Exportar PDF
+          </button>
+          <button
+            onClick={() => setShowProductForm(true)}
+            className="flex items-center px-6 py-2 text-white bg-purple-600 rounded-xl hover:bg-purple-700 transition-colors"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Adicionar Produto
+          </button>
+        </div>
       </div>
 
       {/* Métricas */}

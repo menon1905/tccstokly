@@ -5,6 +5,7 @@ import { CustomerForm } from '../components/forms/CustomerForm';
 import { useCurrency } from '../hooks/useCurrency';
 import { useSupabaseData } from '../hooks/useSupabaseData';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { exportCustomersToPDF } from '../utils/pdfExport';
 
 
 export const CRM: React.FC = () => {
@@ -98,11 +99,14 @@ export const CRM: React.FC = () => {
           <p className="text-gray-600">Gerencie seus contatos e relacionamentos comerciais</p>
         </div>
         <div className="flex gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-            <Filter className="w-4 h-4" />
-            Filtros
+          <button
+            onClick={() => exportCustomersToPDF(customers || [])}
+            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            <DollarSign className="w-4 h-4" />
+            Exportar PDF
           </button>
-          <button 
+          <button
             onClick={() => setShowCustomerForm(true)}
             className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
           >
