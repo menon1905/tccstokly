@@ -242,7 +242,7 @@ export const Financeiro: React.FC = () => {
           iconColor="text-red-600"
         />
         <MetricCard
-          title="Lucro Líquido"
+          title="Lucro"
           value={formatCurrency(netProfit)}
           subtitle="Receita - Despesas"
           icon={netProfit >= 0 ? TrendingUp : TrendingDown}
