@@ -141,7 +141,7 @@ export const Financeiro: React.FC = () => {
             iconColor="text-red-600"
           />
           <MetricCard
-            title="Lucro Líquido"
+            title="Lucro"
             value="R$ 0,00"
             subtitle="Receita - Despesas"
             icon={BarChart3}
