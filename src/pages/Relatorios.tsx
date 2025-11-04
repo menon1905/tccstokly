@@ -248,7 +248,7 @@ export const Relatorios: React.FC = () => {
                 <p className="text-sm text-gray-600">Este período</p>
               </div>
               <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="font-medium text-gray-900 mb-2">Lucro Líquido</h4>
+                <h4 className="font-medium text-gray-900 mb-2">Lucro</h4>
                 <p className="text-2xl font-bold text-orange-600">
                   {formatCurrency(
                     (sales || []).reduce((sum, sale) => sum + (sale.total || 0), 0) - 
