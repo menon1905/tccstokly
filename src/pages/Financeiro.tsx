@@ -285,7 +285,7 @@ export const Financeiro: React.FC = () => {
               {[
                 { name: 'Receita Total', value: 100, amount: totalRevenue },
                 { name: 'Despesas Total', value: totalExpenses > 0 ? (totalExpenses / Math.max(totalRevenue, totalExpenses)) * 100 : 0, amount: totalExpenses },
-                { name: 'Lucro Líquido', value: Math.abs(netProfit) > 0 ? (Math.abs(netProfit) / Math.max(totalRevenue, Math.abs(netProfit))) * 100 : 0, amount: netProfit },
+                { name: 'Lucro', value: Math.abs(netProfit) > 0 ? (Math.abs(netProfit) / Math.max(totalRevenue, Math.abs(netProfit))) * 100 : 0, amount: netProfit },
               ].map((category, index) => (
                 <div key={index} className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
