@@ -29,28 +29,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     // Get initial session
     const getInitialSession = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error) {
-        // Clear invalid session data
-        await supabase.auth.signOut();
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+
+        if (error) {
+          console.warn('Auth error:', error.message);
+          setUser(null);
+        } else {
+          setUser(session?.user ?? null);
+        }
+      } catch (err) {
+        console.warn('Failed to get session:', err);
         setUser(null);
-      } else {
-        setUser(session?.user ?? null);
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false);
     };
 
     getInitialSession();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
-    );
+    let subscription: any;
+    try {
+      const { data } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          setUser(session?.user ?? null);
+          setLoading(false);
+        }
+      );
+      subscription = data.subscription;
+    } catch (err) {
+      console.warn('Failed to set up auth listener:', err);
+    }
 
     return () => subscription.unsubscribe();
   }, []);
