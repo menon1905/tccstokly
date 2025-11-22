@@ -3,13 +3,13 @@ import { Users, UserPlus, Phone, Mail, Calendar, Filter, Search, MoreVertical, S
 import { MetricCard } from '../components/MetricCard';
 import { CustomerForm } from '../components/forms/CustomerForm';
 import { useCurrency } from '../hooks/useCurrency';
-import { useSupabaseData } from '../hooks/useSupabaseData';
+import { useLocalData } from '../hooks/useLocalData';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { exportCustomersToPDF } from '../utils/pdfExport';
 
 
 export const CRM: React.FC = () => {
-  const { customers, loading, refetch } = useSupabaseData();
+  const { customers, loading, refetch } = useLocalData();
   const { formatCurrency } = useCurrency();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');

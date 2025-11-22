@@ -18,14 +18,14 @@ import {
   X
 } from 'lucide-react';
 import { MetricCard } from '../components/MetricCard';
-import { useSupabaseData } from '../hooks/useSupabaseData';
+import { useLocalData } from '../hooks/useLocalData';
 import { useCurrency } from '../hooks/useCurrency';
 import { PurchaseForm } from '../components/forms/PurchaseForm';
 import { supabase } from '../lib/supabase';
 import { exportPurchasesToPDF } from '../utils/pdfExport';
 
 export const Compras: React.FC = () => {
-  const { purchases, loading, refetch } = useSupabaseData();
+  const { purchases, loading, refetch } = useLocalData();
   const { formatCurrency } = useCurrency();
   const [searchTerm, setSearchTerm] = useState('');
   const [showPurchaseForm, setShowPurchaseForm] = useState(false);

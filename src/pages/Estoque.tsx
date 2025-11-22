@@ -13,14 +13,14 @@ import {
   Eye
 } from 'lucide-react';
 import { MetricCard } from '../components/MetricCard';
-import { useSupabaseData } from '../hooks/useSupabaseData';
+import { useLocalData } from '../hooks/useLocalData';
 import { ProductForm } from '../components/forms/ProductForm';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { useCurrency } from '../hooks/useCurrency';
 import { exportProductsToPDF } from '../utils/pdfExport';
 
 export const Estoque: React.FC = () => {
-  const { products, loading, error, refetch } = useSupabaseData();
+  const { products, loading, error, refetch } = useLocalData();
   const { formatCurrency } = useCurrency();
   const [searchTerm, setSearchTerm] = useState('');
   const [showProductForm, setShowProductForm] = useState(false);

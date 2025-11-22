@@ -10,13 +10,13 @@ import {
   Activity
 } from 'lucide-react';
 import { MetricCard } from '../components/MetricCard';
-import { useSupabaseData } from '../hooks/useSupabaseData';
+import { useLocalData } from '../hooks/useLocalData';
 import { useCurrency } from '../hooks/useCurrency';
 import { useSalesPrediction } from '../hooks/useSalesPrediction';
 import { Line } from 'react-chartjs-2';
 
 export const Dashboard: React.FC = () => {
-  const { products, sales, customers, loading, error } = useSupabaseData();
+  const { products, sales, customers, loading, error } = useLocalData();
   const { formatCurrency } = useCurrency();
   const { predictionData } = useSalesPrediction();
 

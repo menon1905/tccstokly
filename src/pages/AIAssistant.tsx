@@ -10,7 +10,7 @@ import {
   Users,
   Sparkles
 } from 'lucide-react';
-import { useSupabaseData } from '../hooks/useSupabaseData';
+import { useLocalData } from '../hooks/useLocalData';
 
 interface Message {
   id: string;
@@ -20,7 +20,7 @@ interface Message {
 }
 
 export const AIAssistant: React.FC = () => {
-  const { products, sales, customers, loading } = useSupabaseData();
+  const { products, sales, customers, loading } = useLocalData();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [hasInitialized, setHasInitialized] = useState(false);

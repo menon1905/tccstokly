@@ -1,16 +1,7 @@
 import React from 'react';
-import { Search, User, LogOut } from 'lucide-react';
-import { useAuth } from './AuthProvider';
+import { Search, User } from 'lucide-react';
 
 export const Header: React.FC = () => {
-  const { user, signOut } = useAuth();
-
-  const handleSignOut = async () => {
-    if (confirm('Tem certeza que deseja sair?')) {
-      await signOut();
-    }
-  };
-
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4">
       <div className="flex items-center justify-between">
@@ -24,26 +15,15 @@ export const Header: React.FC = () => {
             />
           </div>
         </div>
-        
+
         <div className="flex items-center space-x-3">
           <div className="text-right">
-            <p className="text-sm font-medium text-gray-900">
-              {user?.user_metadata?.name || user?.email || 'Usuário'}
-            </p>
-            <p className="text-xs text-gray-500">
-              {user?.email}
-            </p>
+            <p className="text-sm font-medium text-gray-900">Administrador</p>
+            <p className="text-xs text-gray-500">Sistema ERP Local</p>
           </div>
-          <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center mr-2">
+          <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
             <User className="w-4 h-4 text-white" />
           </div>
-          <button
-            onClick={handleSignOut}
-            className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
-            title="Sair"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
         </div>
       </div>
     </header>

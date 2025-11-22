@@ -13,12 +13,12 @@ import {
   BarChart3
 } from 'lucide-react';
 import { MetricCard } from '../components/MetricCard';
-import { useSupabaseData } from '../hooks/useSupabaseData';
+import { useLocalData } from '../hooks/useLocalData';
 import { useCurrency } from '../hooks/useCurrency';
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
 
 export const Financeiro: React.FC = () => {
-  const { sales, purchases, loading } = useSupabaseData();
+  const { sales, purchases, loading } = useLocalData();
   const { formatCurrency } = useCurrency();
   const navigate = useNavigate();
   const [period, setPeriod] = useState('month');
